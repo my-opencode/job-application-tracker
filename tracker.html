@@ -553,7 +553,7 @@
         // el.checked = application[key];
         elSrc.parentNode.replaceChild(el, elSrc);
         el.addEventListener(DOM_EVENTS.change, function (e) {
-          application[key] = e.target.getAttribute(`checked`) === `checked`;
+          application[key] = e.target.checked;
           saveDb();
         });
       }
