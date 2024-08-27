@@ -252,8 +252,8 @@
           <textarea name="input-cover-letter" id="input-cover-letter" width="60%"></textarea>
         </fieldset>
         <fieldset>
-          <legend>Other message</legend>
-          <textarea name="input-message" id="input-message" width="60%"></textarea>
+          <legend>Notes</legend>
+          <textarea name="input-notes" id="input-notes" width="60%"></textarea>
         </fieldset>
         <fieldset>
           <legend>Others</legend>
@@ -298,7 +298,7 @@
      * @property {Boolean} isInterviewing
      * @property {String} offer Text of the offer.
      * @property {String} coverLetter Text of the cover letter.
-     * @property {String} message Text of the initial message.
+     * @property {String} notes Text notes.
      * @property {Set<String>} tags Text tags.
      * @property {Array<String>} messages Exchanged messages.
      */
@@ -339,7 +339,7 @@
         isInterviewing: `input-is-interviewing`,
         offer: `input-offer`,
         coverLetter: `input-cover-letter`,
-        message: `input-cover-message`,
+        notes: `input-notes`,
         tagField: `input-add-tag-field`,
         tags: `input-tags`,
         messages: `input-messages`,
@@ -535,7 +535,7 @@
      * @param {JobTracker} application
      */
     function openApplication(application) {
-      for (const key of [`offerUrl`, `position`, `company`, `contactEmail`, `contactPhone`, `contactName`, `applicationDate`, `applicationEmail`, `offer`, `coverLetter`]) {
+      for (const key of [`offerUrl`, `position`, `company`, `contactEmail`, `contactPhone`, `contactName`, `applicationDate`, `applicationEmail`, `offer`, `coverLetter`, `notes`]) {
         const elSrc = $id(DOM_IDS.inputs[key]);
         if (!elSrc) throw new Error(`Missing element for ${key}`);
         const el = elSrc.cloneNode(true);
@@ -671,7 +671,7 @@
       this.applicationDate = (typeof val?.applicationDate === `string`) ? val.applicationDate : ``;
       this.offer = (typeof val?.offer === `string`) ? val.offer : ``;
       this.coverLetter = (typeof val?.coverLetter === `string`) ? val.coverLetter : ``;
-      this.message = (typeof val?.message === `string`) ? val.message : ``;
+      this.notes = (typeof val?.note === `string`) ? val.notes : ``;
       this.isSent = !!val?.isSent;
       this.isViewed = !!val?.isViewed;
       this.isRejected = !!val?.isRejected;
