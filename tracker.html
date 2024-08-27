@@ -126,6 +126,12 @@
       text-decoration: underline;
     }
 
+    .list-group-label {
+      font-weight: bold;
+      margin-top: 10px;
+      margin-bottom: 5px;
+    }
+
     #right-contents {
       height: 100vh;
       transition: all 1s ease-in-out .1s;
@@ -247,10 +253,37 @@
       <div>
         <button id="add-application">+</button>
         <div class="dropdown">
-          <button class="dropbtn">Filters</button>
+          <button class="dropbtn">Tag filters</button>
           <div class="dropdown-content">
             <button id="filter-tags-reset">Clear filters</button>
             <select id="filter-tags" multiple></select>
+          </div>
+        </div>
+        <div class="dropdown">
+          <button class="dropbtn">Sort / Group</button>
+          <div class="dropdown-content">
+            <button id="list-sort-reset">Clear sort/group</button>
+            <div>
+              <input type="radio" name="list-sort-method" id="sort-date-asc" />
+              <label for="sort-date-asc">Date (ASC)</label>
+            </div>
+            <div>
+              <input type="radio" name="list-sort-method" id="sort-date-desc" />
+              <label for="sort-date-desc">Date (DESC)</label>
+            </div>
+
+            <div>
+              <input type="radio" name="list-sort-method" id="sort-status" />
+              <label for="sort-status">Application Status</label>
+            </div>
+            <div>
+              <input type="radio" name="list-sort-method" id="sort-app-email" />
+              <label for="sort-app-email">Application Email</label>
+            </div>
+            <div>
+              <input type="radio" name="list-sort-method" id="sort-location" />
+              <label for="sort-location">Location</label>
+            </div>
           </div>
         </div>
       </div>
@@ -311,21 +344,21 @@
           </div>
         </fieldset>
         <fieldset>
-          <legend>Flags</legend>
+          <legend>Status</legend>
           <div class="inline-input-group">
-            <label for="input-is-sent">Is sent</label><input type="checkbox" name="input-is-sent" id="input-is-sent" />
+            <input type="checkbox" name="input-is-sent" id="input-is-sent" /><label for="input-is-sent">Is sent</label>
           </div>
           <div class="inline-input-group">
-            <label for="input-is-viewed">Is viewed</label><input type="checkbox" name="input-is-viewed"
-              id="input-is-viewed" />
+            <input type="checkbox" name="input-is-viewed" id="input-is-viewed" /><label for="input-is-viewed">Is
+              viewed</label>
           </div>
           <div class="inline-input-group">
-            <label for="input-is-interviewing">Is interviewing</label><input type="checkbox"
-              name="input-is-interviewing" id="input-is-interviewing" />
+            <input type="checkbox" name="input-is-interviewing" id="input-is-interviewing" /><label
+              for="input-is-interviewing">Is interviewing</label>
           </div>
           <div class="inline-input-group">
-            <label for="input-is-rejected">Is rejected</label><input type="checkbox" name="input-is-rejected"
-              id="input-is-rejected" />
+            <input type="checkbox" name="input-is-rejected" id="input-is-rejected" /><label for="input-is-rejected">Is
+              rejected</label>
           </div>
         </fieldset>
         <fieldset>
@@ -395,13 +428,21 @@
      * @property {Array<String>} messages Exchanged messages.
      */
     /**
-     * This is the type of the state of the page
-     * @typedef {Object} PageState
-     * @property {FileSystemDirectoryHandle} dirH
-     * @property {Set<String>} tags
-     * @property {Array<JobTracker>} db
-     * @property {Boolean} isLoading
+     * @typedef {null|(v:any)=>string|number} ApplicationListGroup
      */
+    /**
+     * @typedef {null|(a:any,b:any)=>number} ApplicationListSort
+     */
+    /**
+    * This is the type of the state of the page
+    * @typedef {Object} PageState
+    * @property {FileSystemDirectoryHandle} dirH
+    * @property {Set<String>} tags
+    * @property {Array<JobTracker>} db
+    * @property {ApplicationListGroup} applicationListGroup
+    * @property {ApplicationListSort} applicationListSort
+    * @property {Boolean} isLoading
+    */
     const DB_FILENAME = `tracker.db.json`;
     var DOM_IDS = {
       addApplication: `add-application`,
@@ -419,6 +460,14 @@
       offerLink: `offer-url-link`,
       rightContents: `right-contents`,
       inputAddTag: `input-add-tag`,
+      sort: {
+        reset: `list-sort-reset`,
+        dateAsc: `sort-date-asc`,
+        dateDesc: `sort-date-desc`,
+        status: `sort-status`,
+        appEmail: `sort-app-email`,
+        location: `sort-location`,
+      },
       inputs: {
         offerUrl: `input-offer-url`,
         position: `input-position`,
@@ -454,7 +503,9 @@
       dirH: undefined,
       db: [],
       tags: new Set(),
-      isLoading: false
+      isLoading: false,
+      applicationListGroup: null,
+      applicationListSort: null
     };
     // state event management
     var pageState = new Proxy(_pageState, {
@@ -503,6 +554,13 @@
     $on(DOM_IDS.addApplication, DOM_EVENTS.click, createNewApplication);
     $on(DOM_IDS.filterTags, DOM_EVENTS.change, handleFilterTags);
     $on(DOM_IDS.filterTagsReset, DOM_EVENTS.click, handleFilterTagsReset);
+
+    $on(DOM_IDS.sort.reset, DOM_EVENTS.click, handleSorting);
+    $on(DOM_IDS.sort.dateAsc, DOM_EVENTS.change, handleSorting);
+    $on(DOM_IDS.sort.dateDesc, DOM_EVENTS.change, handleSorting);
+    $on(DOM_IDS.sort.appEmail, DOM_EVENTS.change, handleSorting);
+    $on(DOM_IDS.sort.status, DOM_EVENTS.change, handleSorting);
+    $on(DOM_IDS.sort.location, DOM_EVENTS.change, handleSorting);
 
     /**
      * Shows an error message and throws if accessing FileSystem is not supported.
@@ -705,13 +763,30 @@
     function listApplications() {
       const leftMenu = $id(DOM_IDS.leftMenuLinks);
       leftMenu.innerHTML = ``;
-      for (const application of pageState.db)
-        appendToApplicationList(application);
+      if (pageState.applicationListSort !== null)
+        pageState.db.sort(pageState.applicationListSort);
+      let groupKey = pageState.ap
+      let prevGroup;
+      const groupOn = pageState.applicationListGroup !== null;
+      for (const application of pageState.db) {
+        if (groupOn && String(pageState.applicationListGroup(application)) !== prevGroup) {
+          const group = String(pageState.applicationListGroup(application));
+          prevGroup = group;
+          appendGroupToApplicationList(application, group || `No value`, leftMenu);
+        }
+        appendToApplicationList(application, leftMenu);
+      }
     }
-    function appendToApplicationList(application) {
+    function appendToApplicationList(application, tgt) {
       const liEl = document.createElement(`li`);
       setApplicationListEntryAttributes(liEl, application);
-      $id(DOM_IDS.leftMenuLinks).appendChild(liEl);
+      (tgt || $id(DOM_IDS.leftMenuLinks)).appendChild(liEl);
+    }
+    function appendGroupToApplicationList(application, group, tgt) {
+      const liEl = document.createElement(`li`);
+      liEl.classList.add(`list-group-label`);
+      liEl.innerText = group;
+      (tgt || $id(DOM_IDS.leftMenuLinks)).appendChild(liEl);
     }
     function updateApplicationListEntry(application) {
       const id = `link_${application.uid}`;
@@ -856,6 +931,58 @@
     function handleFilterTagsReset(e) {
       $id(DOM_IDS.filterTags).childNodes.forEach(optN => optN.selected = true);
       filterList([...pageState.tags]);
+    }
+
+    function handleSorting(e) {
+      if (e.target.id === `list-sort-reset`) {
+        resetSortingMenu();
+        pageState.db.sort(
+          (a, b) => a.uid < b.uid ? -1 : a.uid > b.uid ? 1 : 0
+        );
+        pageState.applicationListSort = null;
+        pageState.applicationListGroup = null;
+      } else {
+        const sort = document.querySelector(`input[name=list-sort-method]:checked`).id;
+        if (sort === `sort-date-asc`) {
+          const g = v => v.applicationDate;
+          pageState.applicationListGroup = g;
+          pageState.applicationListSort = (a, b) => g(a) < g(b) ? -1 : g(a) > g(b) ? 1 : 0;
+        } else if (sort === `sort-date-desc`) {
+          const g = v => v.applicationDate;
+          pageState.applicationListGroup = g;
+          pageState.applicationListSort = (a, b) => g(a) < g(b) ? 1 : g(a) > g(b) ? -1 : 0;
+        } else if (sort === `sort-status`) {
+          // returns a bitmask of the higher bit value
+          const g = a => new StatusFlag(a);
+          pageState.applicationListGroup = g;
+          pageState.applicationListSort = (a, b) => g(a) - g(b);
+        } else if (sort === `sort-app-email`) {
+          const g = v => v.applicationEmail;
+          pageState.applicationListGroup = g;
+          pageState.applicationListSort = (a, b) => g(a) < g(b) ? -1 : g(a) > g(b) ? 1 : 0;
+        } else if (sort === `sort-location`) {
+          const g = v => v.location;
+          pageState.applicationListGroup = g;
+          pageState.applicationListSort = (a, b) => g(a) < g(b) ? -1 : g(a) > g(b) ? 1 : 0;
+        } else
+          throw new Error(`Unsupported sort method "${sort}"`);
+      }
+      listApplications();
+    }
+    function StatusFlag(application) {
+      const a = application;
+      this.value = 8 * a.isRejected || 4 * a.isInterviewing || 2 * a.isViewed || 1 * a.isSent;
+      this.label = this.value === 8 ? `Status: rejected`
+        : this.value === 4 ? `Status: interviewing`
+          : this.value === 2 ? `Status: viewed`
+            : this.value === 1 ? `Status: sent` : `Status: unknown`;
+    }
+    StatusFlag.prototype.valueOf = function () { return this.value; };
+    StatusFlag.prototype.toString = function () { return this.label; };
+    function resetSortingMenu() {
+      document
+        .querySelectorAll(`input[name=list-sort-method]`)
+        .forEach(n => n.checked = false);
     }
   </script>
 </body>
