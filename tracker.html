@@ -688,28 +688,18 @@
     function listTags() {
       const selectEl = $id(DOM_IDS.inputs.tags);
       const filterEl = $id(DOM_IDS.filterTags);
-      for (const tag of pageState.tags) {
-        const optionEl = document.createElement(`option`);
-        optionEl.setAttribute(`value`, tag);
-        optionEl.innerText = tag;
-        selectEl.appendChild(optionEl);
-        const filterOptionEl = optionEl.cloneNode(true);
-        filterOptionEl.setAttribute(`selected`,`selected`);
-        filterEl.appendChild(filterOptionEl);
+      const append = AppendToTagList(selectEl, filterEl)
+      for (const tag of pageState.tags)
+        append(tag);
       }
-    }
-
     function addTag() {
       const fieldEl = $id(DOM_IDS.inputs.tagField);
       const tag = fieldEl.value;
       fieldEl.value = ``;
       pageState.tags.add(tag);
       const selectEl = $id(DOM_IDS.inputs.tags);
-      const optionEl = document.createElement(`option`);
-      optionEl.setAttribute(`value`, tag);
-      optionEl.setAttribute(`selected`, `selected`);
-      optionEl.innerText = tag;
-      selectEl.appendChild(optionEl);
+      const filterEl = $id(DOM_IDS.filterTags);
+      AppendToTagList(selectEl, filterEl)(tag, true);
 
       if ("createEvent" in document) {
         const evt = document.createEvent("HTMLEvents");
@@ -718,6 +708,19 @@
       }
       else {
         selectEl.fireEvent("onchange");
+      }
+    }
+    function AppendToTagList(selectEl, filterEl) {
+      return function appendToTagList(tag, selected) {
+        const optionEl = document.createElement(`option`);
+        optionEl.setAttribute(`value`, tag);
+        if (selected)
+          optionEl.setAttribute(`selected`, `selected`);
+        optionEl.innerText = tag;
+        selectEl.appendChild(optionEl);
+        const filterOptionEl = optionEl.cloneNode(true);
+        filterOptionEl.setAttribute(`selected`, `selected`);
+        filterEl.appendChild(filterOptionEl);
       }
     }
 
