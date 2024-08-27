@@ -685,14 +685,12 @@
       const id = `link_${application.uid}`;
       const liEl = $id(id);
       setApplicationListEntryAttributes(liEl, application);
-      liEl.appendChild(application.getMenuLink());
     }
     function setApplicationListEntryAttributes(liEl, application) {
       liEl.setAttribute(`id`, `link_${application.uid}`);
       liEl.setAttribute(`data-tags`, `,${[...application.tags].join(`,`)},`);
       liEl.innerHTML = ``;
       liEl.appendChild(application.getMenuLink());
-
     }
 
     function updateOfferLink(application) {
