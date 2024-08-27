@@ -183,7 +183,7 @@
     .application-list-entry:hover .application-list-marker {
       background-color: darkblue;
     }
-    
+
     .application-list-entry.rejected .application-list-marker {
       background-color: #555555;
     }
@@ -210,7 +210,7 @@
       width: 265px;
       font-size: 1rem;
     }
-    
+
     .application-list-company {
       width: 265px;
       font-size: 0.8rem;
@@ -249,6 +249,31 @@
 
     /* Right Pane Form */
 
+    #application-contents fieldset,
+    #application-contents fieldset legend {
+      background-color: #FFF;
+    }
+
+    #application-contents fieldset {
+      border: 0;
+      margin: 10px 0;
+      border-radius: 2px;
+      padding-top: 14px;
+    }
+
+    #application-contents fieldset:first-of-type {
+      margin-top: -10px;
+    }
+
+    #application-contents fieldset legend {
+      position: relative;
+      top: 9px;
+      left: -12px;
+      padding-left: 5px;
+      border-left: 5px solid dodgerblue;
+      color: dodgerblue;
+    }
+
     #application-contents fieldset input,
     #application-contents fieldset select {
       margin-right: 20px;
@@ -272,9 +297,14 @@
     }
 
     #application-contents fieldset label {
+      font-size: .9rem;
       margin-right: 10px;
       width: 120px;
       display: inline-block;
+    }
+
+    #offer-url-link {
+      font-size: .9rem;
     }
 
     .inline-input-group {
@@ -895,9 +925,9 @@
         : (application) => {
           const group = String(pageState.applicationListGroup(application));
           if (group !== prevGroup) {
-          prevGroup = group;
+            prevGroup = group;
             appendDomListGroup(application, group || `No value`, containerEl);
-        }
+          }
         };
       // looping self sorting db
       for (const application of pageState.db) {
@@ -964,7 +994,7 @@
       liEl.appendChild(textEl);
       liEl.addEventListener(DOM_EVENTS.click, () => openApplication(application));
     }
-    
+
     function decorateApplicationListEntry(application) {
       document.querySelector(`.application-list-entry.opened`)?.classList?.remove?.(`opened`);
       $id(`link_${application.uid}`).classList.add(`opened`);
