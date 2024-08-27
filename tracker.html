@@ -87,8 +87,9 @@
     #left-menu a {
       text-decoration: none;
     }
+
     #left-menu a:hover {
-      color:midnightblue;
+      color: midnightblue;
       text-decoration: underline;
     }
 
@@ -501,7 +502,7 @@
         "updated": (new Date()).toISOString(),
         "tags": [],
         "data": [
-          (new JobTracker({position:`?`,company: `?`})).toObject()
+          (new JobTracker({ position: `?`, company: `?` })).toObject()
         ]
       };
       await writeFile(DB_FILENAME, JSON.stringify(emptyDb, null, " "));
@@ -618,11 +619,11 @@
       for (const application of pageState.db)
         appendToApplicationList(application);
     }
-    function appendToApplicationList(application){
-        const liEl = document.createElement(`li`);
-        liEl.setAttribute(`id`, `link_${application.uid}`);
-        liEl.appendChild(application.getMenuLink());
-        $id(DOM_IDS.leftMenuLinks).appendChild(liEl);
+    function appendToApplicationList(application) {
+      const liEl = document.createElement(`li`);
+      liEl.setAttribute(`id`, `link_${application.uid}`);
+      liEl.appendChild(application.getMenuLink());
+      $id(DOM_IDS.leftMenuLinks).appendChild(liEl);
     }
     function updateApplicationListEntry(application) {
       const id = `link_${application.uid}`;
