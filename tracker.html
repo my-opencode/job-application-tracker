@@ -597,7 +597,7 @@
         el.addEventListener(DOM_EVENTS.change, function (e) {
           e.target.childNodes.forEach(
             node => {
-              if (node.getAttribute(`selected`) === `selected`)
+              if (node.selected)
                 application[key].add(node.value);
             }
           );
