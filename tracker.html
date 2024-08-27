@@ -130,6 +130,7 @@
     }
 
     #application-contents fieldset input[type=text]#input-offer-url,
+    #application-contents fieldset input[type=text]#input-location,
     #application-contents fieldset input[type=text]#input-contact-name {
       width: 300px;
     }
@@ -195,6 +196,9 @@
           </div>
           <div class="inline-input-group">
             <label for="input-company">Company</label><input type="text" name="input-company" id="input-company" />
+          </div>
+          <div class="inline-input-group">
+            <label for="input-location">Location</label><input type="text" name="input-location" id="input-location" />
           </div>
         </fieldset>
         <fieldset>
@@ -287,6 +291,7 @@
      * @property {String} offerUrl Link to the original offer.
      * @property {String} position Position of the offer.
      * @property {String} company Name of the company or recruitment agency.
+     * @property {String} location Geographical location.
      * @property {String} contactEmail Email contact.
      * @property {String} contactPhone Phone contact.
      * @property {String} contactName Phone contact.
@@ -328,6 +333,7 @@
         offerUrl: `input-offer-url`,
         position: `input-position`,
         company: `input-company`,
+        location: `input-location`,
         contactEmail: `input-contact-email`,
         contactPhone: `input-contact-phone`,
         contactName: `input-contact-name`,
@@ -535,7 +541,7 @@
      * @param {JobTracker} application
      */
     function openApplication(application) {
-      for (const key of [`offerUrl`, `position`, `company`, `contactEmail`, `contactPhone`, `contactName`, `applicationDate`, `applicationEmail`, `offer`, `coverLetter`, `notes`]) {
+      for (const key of [`offerUrl`, `position`, `company`, `location`, `contactEmail`, `contactPhone`, `contactName`, `applicationDate`, `applicationEmail`, `offer`, `coverLetter`, `notes`]) {
         const elSrc = $id(DOM_IDS.inputs[key]);
         if (!elSrc) throw new Error(`Missing element for ${key}`);
         const el = elSrc.cloneNode(true);
@@ -664,6 +670,7 @@
       this.offerUrl = (typeof val?.offerUrl === `string`) ? val.offerUrl : ``;
       this.position = (typeof val?.position === `string`) ? val.position : ``;
       this.company = (typeof val?.company === `string`) ? val.company : ``;
+      this.location = (typeof val?.location === `string`) ? val.location : ``;
       this.contactEmail = (typeof val?.contactEmail === `string`) ? val.contactEmail : ``;
       this.contactPhone = (typeof val?.contactPhone === `string`) ? val.contactPhone : ``;
       this.contactName = (typeof val?.contactName === `string`) ? val.contactName : ``;
