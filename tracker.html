@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Hunt Tracker</title>
+  <style type="text/css">
+    body,
+    #page-container,
+    #left-menu,
+    #right-contents {
+      margin: 0;
+      padding: 0;
+    }
+
+    #init-dialog {
+      z-index: 90;
+      border: 4px solid black;
+      border-radius: 20px;
+      background-color: #DDDDDD;
+      padding: 0 20px;
+      text-align: center;
+    }
+
+    ::backdrop {
+      background-color: #555555;
+      opacity: .6;
+    }
+
+    #init-dialog-error {
+      color: red;
+    }
+
+    #loading-overlay {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      width: 100px;
+      height: 100px;
+      overflow: visible;
+      box-shadow: none;
+      outline: none;
+    }
+
+    #spinner {
+      width: 48px;
+      height: 48px;
+      border: 5px dotted #FFF;
+      border-radius: 50%;
+      display: inline-block;
+      position: relative;
+      box-sizing: border-box;
+      animation: rotation 2s linear infinite;
+    }
+
+    @keyframes rotation {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    #page-container {
+      display: flex;
+      flex-direction: row;
+    }
+
+    #left-menu {
+      background-color: #CCCCCC;
+      border-right: 1px solid #999;
+      height: 100vh;
+      overflow-y: scroll;
+      transition: all 1s ease-in-out .1s;
+    }
+
+    #right-contents {
+      height: 100vh;
+      overflow-y: scroll;
+      transition: all 1s ease-in-out .1s;
+    }
+
+    #page-container.left-menu-closed #left-menu {
+      width: 0px;
+    }
+
+    #page-container.left-menu-closed #right-contents {
+      width: 100vw;
+    }
+
+    #page-container.left-menu-open #left-menu {
+      width: 300px;
+    }
+
+    #page-container.left-menu-open #right-contents {
+      width: calc(100vw - 300px);
+    }
+
+    #left-menu-toggle,
+    #add-application {
+      margin-top: 10px;
+      margin-left: 10px;
+    }
+
+    #application-contents label {
+      margin-right: 10px;
+      width: 120px;
+      display: inline-block;
+    }
+
+    #application-contents fieldset input,
+    #application-contents fieldset select {
+      margin-right: 20px;
+      margin-bottom: 5px;
+    }
+
+    #application-contents fieldset select,
+    #application-contents fieldset input[type=text],
+    #application-contents fieldset input[type=email] {
+      width: 150px;
+    }
+
+    #application-contents fieldset input[type=text]#input-offer-url,
+    #application-contents fieldset input[type=text]#input-contact-name {
+      width: 300px;
+    }
+
+    #application-contents fieldset textarea {
+      width: 100%;
+    }
+
+    .inline-input-group {
+      display: inline-block;
+    }
+
+    fieldset #tags-input-group label,
+    fieldset #tags-input-group select {
+      width: 200px;
+      margin-right: 0;
+    }
+
+    fieldset #tags-input-group input[type=text] {
+      width: 142px;
+      margin-right: 0px;
+    }
+
+    fieldset #tags-input-group button {
+      width: 50px;
+      margin-left: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Init dialog -->
+  <dialog id="init-dialog">
+    <h1>Welcome</h1>
+    <p>Start by opening a work directory.</p>
+    <button id="init-dialog-select-dir">Select directory</button>
+    <p id="init-dialog-error"></p>
+  </dialog>
+
+  <div id="page-container" class="left-menu-closed">
+    <!-- Left menu -->
+    <div id="left-menu">
+      <div><button id="add-application">+</button></div>
+      <ul id="left-menu-links"></ul>
+    </div>
+    <!-- Right view port -->
+    <div id="right-contents">
+      <nav>
+        <button id="left-menu-toggle">☰</button>
+      </nav>
+      <contents id="application-contents">
+        <fieldset>
+          <legend>Source</legend>
+          <div>
+            <label for="input-offer-url">Offer URL</label>
+            <input type="text" name="input-offer-url" id="input-offer-url" />
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>References</legend>
+          <div class="inline-input-group">
+            <label for="input-position">Position</label><input type="text" name="input-position" id="input-position" />
+          </div>
+          <div class="inline-input-group">
+            <label for="input-company">Company</label><input type="text" name="input-company" id="input-company" />
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Contact</legend>
+          <div>
+            <label for="input-contact-name">Name</label><input type="text" name="input-contact-name"
+              id="input-contact-name" />
+          </div>
+          <div>
+          </div>
+          <div class="inline-input-group">
+            <label for="input-contact-email">Email</label><input type="email" name="input-contact-email"
+              id="input-contact-email" />
+          </div>
+          <div class="inline-input-group">
+            <label for="input-contact-phone">Phone</label><input type="text" name="input-contact-phone"
+              id="input-contact-phone" />
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Application</legend>
+          <div class="inline-input-group">
+            <label for="input-application-email">Email</label><input type="email" name="input-application-email"
+              id="input-application-email" />
+          </div>
+          <div class="inline-input-group">
+            <label for="input-application-date">Date</label><input type="date" name="input-application-date"
+              id="input-application-date" />
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Flags</legend>
+          <div class="inline-input-group">
+            <label for="input-is-sent">Is sent</label><input type="checkbox" name="input-is-sent" id="input-is-sent" />
+          </div>
+          <div class="inline-input-group">
+            <label for="input-is-viewed">Is viewed</label><input type="checkbox" name="input-is-viewed"
+              id="input-is-viewed" />
+          </div>
+          <div class="inline-input-group">
+            <label for="input-is-rejected">Is rejected</label><input type="checkbox" name="input-is-rejected"
+              id="input-is-rejected" />
+          </div>
+          <div class="inline-input-group">
+            <label for="input-is-interviewing">Is interviewing</label><input type="checkbox"
+              name="input-is-interviewing" id="input-is-interviewing" />
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Offer</legend>
+          <textarea name="input-offer" id="input-offer" width="60%"></textarea>
+        </fieldset>
+        <fieldset>
+          <legend>Cover Letter</legend>
+          <textarea name="input-cover-letter" id="input-cover-letter" width="60%"></textarea>
+        </fieldset>
+        <fieldset>
+          <legend>Other message</legend>
+          <textarea name="input-message" id="input-message" width="60%"></textarea>
+        </fieldset>
+        <fieldset>
+          <legend>Others</legend>
+          <div id="tags-input-group">
+            <label for="input-add-tag-field">Add new tag</label>
+            <br />
+            <input type="text" name="input-add-tag-field" id="input-add-tag-field" /><button
+              id="input-add-tag">+</button>
+            <br />
+            <label for="input-tags">Tags</label>
+            <br />
+            <select multiple name="input-tags" id="input-tags"></select>
+          </div>
+        </fieldset>
+      </contents>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <dialog id="loading-overlay"><span id="spinner"></span></dialog>
+  <script type="text/javascript">
+    /**
+     * @typedef {Object} DbObject
+     * @property {String} updated
+     * @property {Array<String>} tags
+     * @property {Array<JobTracker>} data
+     */
+    /**
+     * @typedef {Object} JobTracker
+     * @property {String} uid Unique identifier.
+     * @property {String} offerUrl Link to the original offer.
+     * @property {String} position Position of the offer.
+     * @property {String} company Name of the company or recruitment agency.
+     * @property {String} contactEmail Email contact.
+     * @property {String} contactPhone Phone contact.
+     * @property {String} contactName Phone contact.
+     * @property {String} applicationEmail Email used for the application.
+     * @property {String} applyDate Date of application.
+     * @property {Boolean} isSent
+     * @property {Boolean} isViewed
+     * @property {Boolean} isRejected
+     * @property {Boolean} isInterviewing
+     * @property {String} offer Text of the offer.
+     * @property {String} coverLetter Text of the cover letter.
+     * @property {String} message Text of the initial message.
+     * @property {Set<String>} tags Text tags.
+     * @property {Array<String>} messages Exchanged messages.
+     */
+    /**
+     * This is the type of the state of the page
+     * @typedef {Object} PageState
+     * @property {FileSystemDirectoryHandle} dirH
+     * @property {Set<String>} tags
+     * @property {Array<JobTracker>} db
+     * @property {Boolean} isLoading
+     */
+    const DB_FILENAME = `tracker.db.json`;
+    var DOM_IDS = {
+      addApplication: `add-application`,
+      applicationContents: `application-contents`,
+      initDialog: `init-dialog`,
+      initDialogError: `init-dialog-error`,
+      initDialogSelectDirBtn: `init-dialog-select-dir`,
+      leftMenu: `left-menu`,
+      leftMenuLinks: `left-menu-links`,
+      leftMenuToggle: `left-menu-toggle`,
+      loadingOverlay: `loading-overlay`,
+      pageContainer: `page-container`,
+      rightContents: `right-contents`,
+      inputAddTag: `input-add-tag`,
+      inputs: {
+        offerUrl: `input-offer-url`,
+        position: `input-position`,
+        company: `input-company`,
+        contactEmail: `input-contact-email`,
+        contactPhone: `input-contact-phone`,
+        contactName: `input-contact-name`,
+        applicationEmail: `input-application-email`,
+        applicationDate: `input-application-date`,
+        isSent: `input-is-sent`,
+        isViewed: `input-is-viewed`,
+        isRejected: `input-is-rejected`,
+        isInterviewing: `input-is-interviewing`,
+        offer: `input-offer`,
+        coverLetter: `input-cover-letter`,
+        message: `input-cover-message`,
+        tagField: `input-add-tag-field`,
+        tags: `input-tags`,
+        messages: `input-messages`,
+      },
+    };
+    var DOM_EVENTS = {
+      change: `change`,
+      click: `click`,
+      update: `update`,
+    };
+    /** 
+     * @name _pageState
+     * @type {PageState} 
+     */
+    const _pageState = {
+      dirH: undefined,
+      db: [],
+      tags: new Set(),
+      isLoading: false
+    };
+    // state event management
+    var pageState = new Proxy(_pageState, {
+      set(target, prop, value) {
+        if (prop === `isLoading`) {
+          target[prop] = !!value;
+          if (target.isLoading)
+            $id(DOM_IDS.loadingOverlay).showModal();
+          else
+            $id(DOM_IDS.loadingOverlay).close();
+        }
+        else
+          target[prop] = value;
+      }
+    });
+
+    /**
+     * Wrapper for document.getElementById
+     * @param {String} id
+     * @returns {HTMLElement}
+     */
+    function $id(id) {
+      if (typeof id !== `string` || !id?.length) throw new TypeError(`function $id(id:string) requires a string argument.`);
+      return document.getElementById(id);
+    }
+
+    /**
+     * Wrapper for HTMLElement.addEventListener.
+     * Accepts an id or element as target.
+     * @param {HTMLElement|String} idOrEl target
+     * @param {String} eventName DOM event name
+     * @param {Function} handler event listener callback
+     */
+    function $on(idOrEl, eventName, handler) {
+      const target = idOrEl instanceof HTMLElement ? idOrEl : $id(String(idOrEl));
+      if (!target) throw new Error(`$on target not found.`);
+      if (typeof eventName !== `string` || !eventName?.length) throw new TypeError(`function $on(id:string, eventName:string, handler:()=>any) requires a string 'eventName' argument.`);
+      if (!handler || !(handler instanceof Function)) throw new TypeError(`function $on(id:string, eventName:string, handler:()=>any) requires a function 'handler' argument.`);
+      target.addEventListener(eventName, handler);
+    }
+
+    $id(DOM_IDS.initDialog).showModal();
+    $on(DOM_IDS.initDialogSelectDirBtn, DOM_EVENTS.click, selectDirectory);
+    $on(DOM_IDS.leftMenuToggle, DOM_EVENTS.click, toggleLeftMenu);
+    $on(DOM_IDS.inputAddTag, DOM_EVENTS.click, addTag);
+    $on(DOM_IDS.addApplication, DOM_EVENTS.click, createNewApplication);
+
+    /**
+     * Shows an error message and throws if accessing FileSystem is not supported.
+     */
+    function onlyOnChrome() {
+      if (!window.showDirectoryPicker) {
+        $id(DOM_IDS.initDialogError).innerText = `Importer: This functionality only works on Chrome.`;
+        throw new Error(`This functionality only works on Chrome.`);
+      }
+    }
+
+    /**
+     * Selects work directory.
+     * Calls initWithData upon completion.
+     * @param {MouseEvent} e
+     */
+    async function selectDirectory(e) {
+      onlyOnChrome();
+      let dirHandle = undefined;
+      try {
+        dirHandle = await window.showDirectoryPicker({
+          mode: `readwrite`
+        });
+      }
+      catch (err) {
+        $id(DOM_IDS.initDialogError).innerText = `Importer: Operation cancelled.`;
+        return;
+      }
+      if (!dirHandle) {
+        $id(DOM_IDS.initDialogError).innerText = `Importer: Invalid Work directory.`;
+        return;
+      }
+      pageState.dirH = dirHandle;
+
+      initWithData();
+      closeInitModal();
+    }
+    /**
+     * Closes the init dialog
+     */
+    function closeInitModal() {
+      $id(DOM_IDS.initDialog).close();
+    }
+
+    /**
+     * Initializes the page with data from the file db.
+     */
+    async function initWithData() {
+      pageState.isLoading = true;
+      await loadDbFromFile();
+      updateGUI();
+      pageState.isLoading = false;
+      toggleLeftMenu();
+    }
+
+    /**
+     * Loads database from file or creates it if missing
+     */
+    async function loadDbFromFile() {
+      let dbData;
+      const dbH = await pageState.dirH.getFileHandle(DB_FILENAME, { create: true });
+      const rawDb = await dbH.getFile();
+      const txtDb = await rawDb.text();
+      if (!txtDb) {
+        dbData = await initializeDbFile();
+      } else {
+        dbData = JSON.parse(txtDb);
+      }
+      pageState.db = dbData.data.map(v => new JobTracker(v));
+      pageState.tags = new Set(dbData.tags);
+    }
+
+    /**
+     * Creates an empty database file
+     * @returns {Promise<DbObject>}
+     */
+    async function initializeDbFile() {
+      /** @type {DbObject} */
+      const emptyDb = {
+        "updated": (new Date()).toISOString(),
+        "tags": [],
+        "data": []
+      };
+      await writeFile(DB_FILENAME, JSON.stringify(emptyDb, null, " "));
+      return Object.create(emptyDb);
+    }
+
+    /**
+     * Writes a file to the File System.
+     * @param {String} filename
+     * @param {Any} contents Contents to write to the file.
+     * @param {FileSystemDirectoryHandle} [directoryHandler] optional directory handler. Defaults to work directory.
+     */
+    async function writeFile(filename, contents, directoryHandler) {
+      const _dirH = directoryHandler || pageState.dirH;
+      const fileHandle = await _dirH.getFileHandle(filename, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(contents);
+      await writable.close();
+    }
+
+    /**
+     * Cycles left menu open & closed classes
+     */
+    function toggleLeftMenu() {
+      const container = $id(DOM_IDS.pageContainer);
+      if (container.classList.contains(`left-menu-open`)) {
+        container.classList.remove(`left-menu-open`);
+        container.classList.add(`left-menu-closed`);
+      } else {
+        container.classList.remove(`left-menu-closed`);
+        container.classList.add(`left-menu-open`);
+      }
+    }
+
+    /**
+     * Updates the DOM contents with data
+     */
+    function updateGUI() {
+      listApplications();
+      listTags();
+      if (pageState.db.length > 0)
+        openApplication(pageState.db[0]);
+    }
+
+    /**
+     * Attaches the application to the content form inputs
+     * @param {JobTracker} application
+     */
+    function openApplication(application) {
+      for (const key of [`offerUrl`, `position`, `company`, `contactEmail`, `contactPhone`, `contactName`, `applicationDate`, `applicationEmail`, `offer`, `coverLetter`]) {
+        const elSrc = $id(DOM_IDS.inputs[key]);
+        if (!elSrc) throw new Error(`Missing element for ${key}`);
+        const el = elSrc.cloneNode(true);
+        el.value = application[key];
+        elSrc.parentNode.replaceChild(el, elSrc);
+        el.addEventListener(DOM_EVENTS.change, function (e) {
+          application[key] = e.target.value;
+          if (key === `position` || key === `company`)
+            updateApplicationListEntry(application);
+          saveDb();
+        });
+      }
+      for (const key of [`isSent`, `isViewed`, `isInterviewing`, `isRejected`]) {
+        const elSrc = $id(DOM_IDS.inputs[key]);
+        if (!elSrc) throw new Error(`Missing element for ${key}`);
+        const el = elSrc.cloneNode(true);
+        if (application[key])
+          el.setAttribute(`checked`, `checked`);
+        else
+          el.removeAttribute(`checked`);
+        // el.checked = application[key];
+        elSrc.parentNode.replaceChild(el, elSrc);
+        el.addEventListener(DOM_EVENTS.change, function (e) {
+          application[key] = e.target.getAttribute(`checked`) === `checked`;
+          saveDb();
+        });
+      }
+      {
+        const key = `tags`;
+        const elSrc = $id(DOM_IDS.inputs[key]);
+        if (!elSrc) throw new Error(`Missing element for ${key}`);
+        const el = elSrc.cloneNode(true);
+        el.childNodes.forEach(node => {
+          if (application.tags.has(node.value))
+            node.setAttribute(`selected`, `selected`);
+          else
+            node.removeAttribute(`selected`);
+        });
+        elSrc.parentNode.replaceChild(el, elSrc);
+        el.addEventListener(DOM_EVENTS.change, function (e) {
+          e.target.childNodes.forEach(
+            node => {
+              if (node.getAttribute(`selected`) === `selected`)
+                application[key].add(node.value);
+            }
+          );
+          saveDb();
+        });
+      }
+    }
+
+    function createNewApplication() {
+      const application = new JobTracker();
+      pageState.db.push(application);
+      appendToApplicationList(application);
+      openApplication(application);
+    }
+
+    function listApplications() {
+      const leftMenu = $id(DOM_IDS.leftMenuLinks);
+      leftMenu.innerHTML = ``;
+      for (const application of pageState.db)
+        appendToApplicationList(application);
+    }
+    function appendToApplicationList(application){
+        const liEl = document.createElement(`li`);
+        liEl.setAttribute(`id`, `link_${application.uid}`);
+        liEl.appendChild(application.getMenuLink());
+        $id(DOM_IDS.leftMenuLinks).appendChild(liEl);
+    }
+    function updateApplicationListEntry(application) {
+      const id = `link_${application.uid}`;
+      const liEl = $id(id);
+      liEl.innerHTML = ``;
+      liEl.appendChild(application.getMenuLink());
+    }
+
+    function listTags() {
+      const selectEl = $id(DOM_IDS.inputs.tags);
+      for (const tag of pageState.tags) {
+        const optionEl = document.createElement(`option`);
+        optionEl.setAttribute(`value`, tag);
+        optionEl.innerText = tag;
+        selectEl.appendChild(optionEl);
+      }
+    }
+
+    function addTag() {
+      const fieldEl = $id(DOM_IDS.inputs.tagField);
+      const tag = fieldEl.value;
+      fieldEl.value = ``;
+      pageState.tags.add(tag);
+      const selectEl = $id(DOM_IDS.inputs.tags);
+      const optionEl = document.createElement(`option`);
+      optionEl.setAttribute(`value`, tag);
+      optionEl.setAttribute(`selected`, `selected`);
+      optionEl.innerText = tag;
+      selectEl.appendChild(optionEl);
+
+      if ("createEvent" in document) {
+        const evt = document.createEvent("HTMLEvents");
+        evt.initEvent("change", false, true);
+        selectEl.dispatchEvent(evt);
+      }
+      else {
+        selectEl.fireEvent("onchange");
+      }
+    }
+
+    function createUid() {
+      const n = new Date();
+      let uid = `${n.getFullYear()
+        }${String(n.getMonth() + 1).padStart(2, `0`)
+        }${String(n.getDate()).padStart(2, `0`)
+        }_${String(n.getHours()).padStart(2, `0`)
+        }${String(n.getMinutes()).padStart(2, `0`)
+        }${String(n.getSeconds()).padStart(2, `0`)
+        }${String(n.getMilliseconds()).padStart(3, `0`)
+        }_${String(Math.trunc(Math.random() * 999999)).padStart(6, `0`)
+        }`;
+      return uid;
+    }
+    function JobTracker(val) {
+      // data
+      this.uid = (typeof val?.uid === `string`) ? val.uid : createUid();
+      this.offerUrl = (typeof val?.offerUrl === `string`) ? val.offerUrl : ``;
+      this.position = (typeof val?.position === `string`) ? val.position : ``;
+      this.company = (typeof val?.company === `string`) ? val.company : ``;
+      this.contactEmail = (typeof val?.contactEmail === `string`) ? val.contactEmail : ``;
+      this.contactPhone = (typeof val?.contactPhone === `string`) ? val.contactPhone : ``;
+      this.contactName = (typeof val?.contactName === `string`) ? val.contactName : ``;
+      this.applicationEmail = (typeof val?.applicationEmail === `string`) ? val.applicationEmail : ``;
+      this.applicationDate = (typeof val?.applicationDate === `string`) ? val.applicationDate : ``;
+      this.offer = (typeof val?.offer === `string`) ? val.offer : ``;
+      this.coverLetter = (typeof val?.coverLetter === `string`) ? val.coverLetter : ``;
+      this.message = (typeof val?.message === `string`) ? val.message : ``;
+      this.isSent = !!val?.isSent;
+      this.isViewed = !!val?.isViewed;
+      this.isRejected = !!val?.isRejected;
+      this.isInterviewing = !!val?.isInterviewing;
+      this.tags = new Set(Array.isArray(val?.tags) ? val.tags : []);
+      this.messages = Array.isArray(val?.messages) ? val.messages : [];
+    }
+    JobTracker.prototype.getMenuLink = function () {
+      const el = document.createElement(`a`);
+      el.innerText = `${this.company} — ${this.position}`;
+      el.href = `#`;
+      el.addEventListener(DOM_EVENTS.click, () => openApplication(this));
+      return el;
+    }
+    JobTracker.prototype.toJSON = function () {
+      const obj = { ...this };
+      obj.tags = [...this.tags];
+      return JSON.stringify(obj);
+    }
+    JobTracker.prototype.toObject = function () {
+      const obj = { ...this };
+      obj.tags = [...this.tags];
+      return obj;
+    }
+
+    async function saveDb() {
+      /** @type {DbObject} */
+      const obj = {
+        updated: (new Date()).toISOString(),
+        tags: [...pageState.tags],
+        data: pageState.db.map(app => app.toObject())
+      };
+      console.log(`saving`);
+      await writeFile(DB_FILENAME, JSON.stringify(obj, null, ` `));
+    }
+  </script>
+</body>
+
+</html>
