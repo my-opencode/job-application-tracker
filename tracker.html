@@ -115,8 +115,9 @@
     #left-menu a {
       text-decoration: none;
     }
+
     #left-menu a.rejected {
-      text-decoration:line-through;
+      text-decoration: line-through;
       color: orangered;
     }
 
@@ -634,7 +635,7 @@
         el.addEventListener(DOM_EVENTS.change, function (e) {
           application[key] = e.target.checked;
           saveDb();
-          if(key === `isRejected`)
+          if (key === `isRejected`)
             updateApplicationListEntry(application);
         });
       }
@@ -776,7 +777,7 @@
       const el = document.createElement(`a`);
       el.innerText = `${this.company} — ${this.position}`;
       el.href = `#`;
-      if(this.isRejected) el.classList.add(`rejected`);
+      if (this.isRejected) el.classList.add(`rejected`);
       el.addEventListener(DOM_EVENTS.click, () => openApplication(this));
       return el;
     }
@@ -821,7 +822,7 @@
         }
       );
     }
-    function handleFilterTagsReset(e){
+    function handleFilterTagsReset(e) {
       $id(DOM_IDS.filterTags).childNodes.forEach(optN => optN.selected = true);
       filterList([...pageState.tags]);
     }
