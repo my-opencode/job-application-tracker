@@ -223,6 +223,7 @@
         <div class="dropdown">
           <button class="dropbtn">Filters</button>
           <div class="dropdown-content">
+            <button id="filter-tags-reset">Clear filters</button>
             <select id="filter-tags" multiple></select>
           </div>
         </div>
@@ -374,6 +375,7 @@
       addApplication: `add-application`,
       applicationContents: `application-contents`,
       filterTags: `filter-tags`,
+      filterTagsReset: `filter-tags-reset`,
       initDialog: `init-dialog`,
       initDialogError: `init-dialog-error`,
       initDialogSelectDirBtn: `init-dialog-select-dir`,
@@ -468,6 +470,7 @@
     $on(DOM_IDS.inputAddTag, DOM_EVENTS.click, addTag);
     $on(DOM_IDS.addApplication, DOM_EVENTS.click, createNewApplication);
     $on(DOM_IDS.filterTags, DOM_EVENTS.change, handleFilterTags);
+    $on(DOM_IDS.filterTagsReset, DOM_EVENTS.click, handleFilterTagsReset);
 
     /**
      * Shows an error message and throws if accessing FileSystem is not supported.
@@ -819,6 +822,10 @@
             liEl.classList.add(`display-none`);
         }
       );
+    }
+    function handleFilterTagsReset(e){
+      $id(DOM_IDS.filterTags).childNodes.forEach(optN => optN.selected = true);
+      filterList([...pageState.tags]);
     }
   </script>
 </body>
