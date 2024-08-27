@@ -492,7 +492,9 @@
       const emptyDb = {
         "updated": (new Date()).toISOString(),
         "tags": [],
-        "data": []
+        "data": [
+          (new JobTracker({position:`?`,company: `?`})).toObject()
+        ]
       };
       await writeFile(DB_FILENAME, JSON.stringify(emptyDb, null, " "));
       return Object.create(emptyDb);
