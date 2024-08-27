@@ -559,12 +559,14 @@
       for (const key of [`isSent`, `isViewed`, `isInterviewing`, `isRejected`]) {
         const elSrc = $id(DOM_IDS.inputs[key]);
         if (!elSrc) throw new Error(`Missing element for ${key}`);
-        const el = elSrc.cloneNode(true);
-        if (application[key])
+        const el = elSrc.cloneNode(false);
+        if (application[key]) {
           el.setAttribute(`checked`, `checked`);
-        else
+          el.checked = true;
+        } else {
           el.removeAttribute(`checked`);
-        // el.checked = application[key];
+          el.checked = false;
+        }
         elSrc.parentNode.replaceChild(el, elSrc);
         el.addEventListener(DOM_EVENTS.change, function (e) {
           application[key] = e.target.checked;
