@@ -434,7 +434,7 @@
      * @typedef {null|(a:any,b:any)=>number} ApplicationListSort
      */
     /**
-    * This is the type of the state of the page
+    * The type of the state of the page
     * @typedef {Object} PageState
     * @property {FileSystemDirectoryHandle} dirH
     * @property {Set<String>} tags
@@ -444,6 +444,9 @@
     * @property {Boolean} isLoading
     */
     const DB_FILENAME = `tracker.db.json`;
+    /**
+     * Constants ids of DOM elements
+     */
     var DOM_IDS = {
       addApplication: `add-application`,
       applicationContents: `application-contents`,
@@ -547,14 +550,21 @@
       target.addEventListener(eventName, handler);
     }
 
+    // entry point
     $id(DOM_IDS.initDialog).showModal();
+
+    // select folder
     $on(DOM_IDS.initDialogSelectDirBtn, DOM_EVENTS.click, selectDirectory);
+    // open close left menu
     $on(DOM_IDS.leftMenuToggle, DOM_EVENTS.click, toggleLeftMenu);
-    $on(DOM_IDS.inputAddTag, DOM_EVENTS.click, addTag);
+    // add application button
     $on(DOM_IDS.addApplication, DOM_EVENTS.click, createNewApplication);
+    // application form: add new tag
+    $on(DOM_IDS.inputAddTag, DOM_EVENTS.click, addTag);
+    // filtering
     $on(DOM_IDS.filterTags, DOM_EVENTS.change, handleFilterTags);
     $on(DOM_IDS.filterTagsReset, DOM_EVENTS.click, handleFilterTagsReset);
-
+    // sorting
     $on(DOM_IDS.sort.reset, DOM_EVENTS.click, handleSorting);
     $on(DOM_IDS.sort.dateAsc, DOM_EVENTS.change, handleSorting);
     $on(DOM_IDS.sort.dateDesc, DOM_EVENTS.change, handleSorting);
@@ -753,6 +763,12 @@
       }
     }
 
+    /**
+     * Creates a new application
+     * Adds it to db
+     * Opens it in editor form
+     * Does not save to file
+     */
     function createNewApplication() {
       const application = new JobTracker();
       pageState.db.push(application);
@@ -760,6 +776,11 @@
       openApplication(application);
     }
 
+    /**
+     * Creates the left menu application list.
+     * Adds replaces the contents of the list with the new list.
+     * Applies sorting & grouping
+     */
     function listApplications() {
       const leftMenu = $id(DOM_IDS.leftMenuLinks);
       leftMenu.innerHTML = ``;
@@ -777,22 +798,43 @@
         appendToApplicationList(application, leftMenu);
       }
     }
+    /**
+     * Adds an entry to the left menu application list
+     * @param {JobTracker} application Application object to list.
+     * @param {HTMLElement} [tgt] Optional list container element.
+     */
     function appendToApplicationList(application, tgt) {
       const liEl = document.createElement(`li`);
       setApplicationListEntryAttributes(liEl, application);
       (tgt || $id(DOM_IDS.leftMenuLinks)).appendChild(liEl);
     }
+    /**
+     * Adds a group label to the left menu application list
+     * @param {JobTracker} application Application object to list.
+     * @param {String} group Label of the group.
+     * @param {HTMLElement} [tgt] Optional list container element.
+     */
     function appendGroupToApplicationList(application, group, tgt) {
       const liEl = document.createElement(`li`);
       liEl.classList.add(`list-group-label`);
       liEl.innerText = group;
       (tgt || $id(DOM_IDS.leftMenuLinks)).appendChild(liEl);
     }
+
+    /**
+     * Updates one list entry.
+     * @param {JobTracker} application
+     */
     function updateApplicationListEntry(application) {
       const id = `link_${application.uid}`;
       const liEl = $id(id);
       setApplicationListEntryAttributes(liEl, application);
     }
+    /**
+     * Sets the values of the attributes of an application list entry.
+     * @param {HTMLElement} liEl <li> element
+     * @param {JobTracker} application
+     */
     function setApplicationListEntryAttributes(liEl, application) {
       liEl.setAttribute(`id`, `link_${application.uid}`);
       liEl.setAttribute(`data-tags`, `,${[...application.tags].join(`,`)},`);
@@ -800,11 +842,18 @@
       liEl.appendChild(application.getMenuLink());
     }
 
+    /**
+     * Updates the href value of the offer link.
+     * @param {JobTracker} application
+     */
     function updateOfferLink(application) {
       const el = $id(DOM_IDS.offerLink);
       el.href = application.offerUrl;
     }
 
+    /**
+     * Controls the creation of tag options
+     */
     function listTags() {
       const selectEl = $id(DOM_IDS.inputs.tags);
       const filterEl = $id(DOM_IDS.filterTags);
@@ -812,6 +861,11 @@
       for (const tag of pageState.tags)
         append(tag);
     }
+    /**
+     * Creates a new tag
+     * Adds it to application tags
+     * Triggers tags select change event
+     */
     function addTag() {
       const fieldEl = $id(DOM_IDS.inputs.tagField);
       const tag = fieldEl.value;
@@ -830,6 +884,14 @@
         selectEl.fireEvent("onchange");
       }
     }
+    /**
+     * Curryied function taking tag select and tag filter elements
+     * Returns a function taking tag and a selection flag
+     * Appends a new tag option to each select and filter elements
+     * @param {HTMLElement} selectEl
+     * @param {HTMLElement} filterEl
+     * @returns {(tag:string,selected?:boolean)=>void}
+     */
     function AppendToTagList(selectEl, filterEl) {
       return function appendToTagList(tag, selected) {
         const optionEl = document.createElement(`option`);
@@ -844,6 +906,10 @@
       }
     }
 
+    /**
+     * Returns a new uid value
+     * @returns {String}
+     */
     function createUid() {
       const n = new Date();
       let uid = `${n.getFullYear()
@@ -857,6 +923,9 @@
         }`;
       return uid;
     }
+    /**
+     * Class JobTracker that represents an application
+     */
     function JobTracker(val) {
       // data
       this.uid = (typeof val?.uid === `string`) ? val.uid : createUid();
@@ -879,6 +948,10 @@
       this.tags = new Set(Array.isArray(val?.tags) ? val.tags : []);
       this.messages = Array.isArray(val?.messages) ? val.messages : [];
     }
+    /**
+     * Method getMenuLink
+     * @returns {HTMLElement}
+     */
     JobTracker.prototype.getMenuLink = function () {
       const el = document.createElement(`a`);
       el.innerText = `${this.company} — ${this.position}`;
@@ -887,15 +960,28 @@
       el.addEventListener(DOM_EVENTS.click, () => openApplication(this));
       return el;
     }
+    /**
+     * Method toJSON
+     * Returns a json representation of an application
+     * @returns {String}
+     */
     JobTracker.prototype.toJSON = function () {
       return JSON.stringify(this.toObject());
     }
+    /**
+     * Method toObject
+     * Returns the database representation of an application
+     * @returns {Object}
+     */
     JobTracker.prototype.toObject = function () {
       const obj = { ...this };
       obj.tags = [...this.tags];
       return obj;
     }
 
+    /**
+     * Saves state to database file
+     */
     async function saveDb() {
       /** @type {DbObject} */
       const obj = {
@@ -907,6 +993,11 @@
       await writeFile(DB_FILENAME, JSON.stringify(obj, null, ` `));
     }
 
+    /**
+     * Handles a filter event
+     * Controls filtering
+     * @param {Event} e
+     */
     function handleFilterTags(e) {
       const tags = [];
       e.target.childNodes.forEach(optN => {
@@ -914,6 +1005,10 @@
       });
       filterList(tags);
     }
+    /**
+     * Applies filtering to the DOM elements
+     * @param {Array<String>} tagsToKeep
+     */
     function filterList(tagsToKeep) {
       const elements = document.querySelectorAll(`#${DOM_IDS.leftMenuLinks} li`);
       elements.forEach(
@@ -926,11 +1021,22 @@
         }
       );
     }
+    /**
+     * Handles a filter reset event
+     * @param {Event} e
+     */
     function handleFilterTagsReset(e) {
       $id(DOM_IDS.filterTags).childNodes.forEach(optN => optN.selected = true);
       filterList([...pageState.tags]);
     }
 
+    /**
+     * Handles a sorting event
+     * Sets state grouping function
+     * Sets state sorting function
+     * Calls list update
+     * @param {Event} e
+     */
     function handleSorting(e) {
       if (e.target.id === `list-sort-reset`) {
         resetSortingMenu();
@@ -967,6 +1073,13 @@
       }
       listApplications();
     }
+    /**
+     * StatusFlag class
+     * Represents the advancement status of an application.
+     * May return a bit map with valueOf
+     * May return a string label with toString
+     * @param {JobTracker} application
+     */
     function StatusFlag(application) {
       const a = application;
       this.value = 8 * a.isRejected || 4 * a.isInterviewing || 2 * a.isViewed || 1 * a.isSent;
@@ -975,8 +1088,19 @@
           : this.value === 2 ? `Status: viewed`
             : this.value === 1 ? `Status: sent` : `Status: unknown`;
     }
+    /**
+     * Method valueOf
+     * @returns {Number}
+     */
     StatusFlag.prototype.valueOf = function () { return this.value; };
+    /**
+     * Method toString
+     * @returns {String}
+     */
     StatusFlag.prototype.toString = function () { return this.label; };
+    /**
+     * Resets the radio inputs of the sorting menu
+     */
     function resetSortingMenu() {
       document
         .querySelectorAll(`input[name=list-sort-method]`)
