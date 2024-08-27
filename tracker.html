@@ -668,16 +668,21 @@
     }
     function appendToApplicationList(application) {
       const liEl = document.createElement(`li`);
-      liEl.setAttribute(`id`, `link_${application.uid}`);
-      liEl.setAttribute(`data-tags`, `,${[...application.tags].join(`,`)},`);
-      liEl.appendChild(application.getMenuLink());
+      setApplicationListEntryAttributes(liEl, application);
       $id(DOM_IDS.leftMenuLinks).appendChild(liEl);
     }
     function updateApplicationListEntry(application) {
       const id = `link_${application.uid}`;
       const liEl = $id(id);
+      setApplicationListEntryAttributes(liEl, application);
+      liEl.appendChild(application.getMenuLink());
+    }
+    function setApplicationListEntryAttributes(liEl, application) {
+      liEl.setAttribute(`id`, `link_${application.uid}`);
+      liEl.setAttribute(`data-tags`, `,${[...application.tags].join(`,`)},`);
       liEl.innerHTML = ``;
       liEl.appendChild(application.getMenuLink());
+
     }
 
     function updateOfferLink(application) {
