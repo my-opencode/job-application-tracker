@@ -115,6 +115,10 @@
     #left-menu a {
       text-decoration: none;
     }
+    #left-menu a.rejected {
+      text-decoration:line-through;
+      color: orangered;
+    }
 
     #left-menu a:hover {
       color: midnightblue;
@@ -627,6 +631,8 @@
         el.addEventListener(DOM_EVENTS.change, function (e) {
           application[key] = e.target.checked;
           saveDb();
+          if(key === `isRejected`)
+            updateApplicationListEntry(application);
         });
       }
       {
@@ -769,6 +775,7 @@
       const el = document.createElement(`a`);
       el.innerText = `${this.company} — ${this.position}`;
       el.href = `#`;
+      if(this.isRejected) el.classList.add(`rejected`);
       el.addEventListener(DOM_EVENTS.click, () => openApplication(this));
       return el;
     }
