@@ -803,6 +803,7 @@
      * @param {JobTracker} application
      */
     function openApplication(application) {
+      decorateApplicationListEntry(application);
       updateOfferLink(application);
       for (const key of [`offerUrl`, `position`, `company`, `location`, `contactEmail`, `contactPhone`, `contactName`, `applicationDate`, `applicationEmail`, `offer`, `coverLetter`, `notes`]) {
         const elSrc = $id(DOM_IDS.inputs[key]);
@@ -962,6 +963,10 @@
       liEl.appendChild(textEl);
       liEl.addEventListener(DOM_EVENTS.click, () => openApplication(application));
     }
+    
+    function decorateApplicationListEntry(application) {
+      document.querySelector(`.application-list-entry.opened`)?.classList?.remove?.(`opened`);
+      $id(`link_${application.uid}`).classList.add(`opened`);
     }
 
     /**
