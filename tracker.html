@@ -201,6 +201,31 @@
       margin-left: 0;
     }
 
+    #repository {
+      font-family: sans-serif;
+      display: block;
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      background: dodgerblue;
+      color: white;
+      padding: 4px 8px;
+      border: 1px solid darkblue;
+      border-radius: 5px;
+      font-size: .8rem;
+    }
+
+    #repository a,
+    #repository a:hover,
+    #repository a:visited {
+      color: white;
+      text-decoration: none;
+    }
+
+    #repository a:hover {
+      text-decoration: underline;
+    }
+
     .display-none {
       display: none !important;
     }
@@ -330,6 +355,12 @@
         </fieldset>
       </contents>
     </div>
+  </div>
+
+  <!-- Repo -->
+  <div id="repository">
+    <a href="https://github.com/my-opencode/application-tracker" target="_blank" rel="noopener noreferrer">GitHub Repo
+      ⤴</a>
   </div>
 
   <!-- Loading overlay -->
