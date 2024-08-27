@@ -92,7 +92,7 @@
       border-radius: 10px;
       padding: 10px;
       min-width: 160px;
-      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
       z-index: 1;
     }
 
@@ -221,7 +221,7 @@
           <div class="dropdown-content">
             <select id="filter-tags" multiple></select>
           </div>
-        </div> 
+        </div>
       </div>
       <ul id="left-menu-links"></ul>
     </div>
@@ -697,7 +697,7 @@
       const append = AppendToTagList(selectEl, filterEl)
       for (const tag of pageState.tags)
         append(tag);
-      }
+    }
     function addTag() {
       const fieldEl = $id(DOM_IDS.inputs.tagField);
       const tag = fieldEl.value;
@@ -794,14 +794,14 @@
       await writeFile(DB_FILENAME, JSON.stringify(obj, null, ` `));
     }
 
-    function handleFilterTags(e){
+    function handleFilterTags(e) {
       const tags = [];
       e.target.childNodes.forEach(optN => {
-        if(optN.selected) tags.push(optN.value);
+        if (optN.selected) tags.push(optN.value);
       });
       filterList(tags);
     }
-    function filterList(tagsToKeep){
+    function filterList(tagsToKeep) {
       const elements = document.querySelectorAll(`#${DOM_IDS.leftMenuLinks} li`);
       elements.forEach(
         liEl => {
