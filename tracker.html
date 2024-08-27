@@ -888,9 +888,7 @@
       return el;
     }
     JobTracker.prototype.toJSON = function () {
-      const obj = { ...this };
-      obj.tags = [...this.tags];
-      return JSON.stringify(obj);
+      return JSON.stringify(this.toObject());
     }
     JobTracker.prototype.toObject = function () {
       const obj = { ...this };
