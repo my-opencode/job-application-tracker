@@ -559,6 +559,11 @@
         }
         else
           target[prop] = value;
+      },
+      get(target, prop) {
+        if (target.applicationListSort && prop === `db`)
+          return target[prop].toSorted(target.applicationListSort);
+        return target[prop];
       }
     });
 
