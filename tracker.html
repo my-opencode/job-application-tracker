@@ -73,10 +73,13 @@
     #page-container {
       display: flex;
       flex-direction: row;
+      background-color: #CCCCCC;
     }
 
+    #left-menu,
     #right-contents {
-      height: 100vh;
+      padding: 10px;
+      height: calc(100vh - 20px);
       transition: all 1s ease-in-out .1s;
     }
 
@@ -89,29 +92,31 @@
     }
 
     #page-container.left-menu-open #left-menu {
-      width: 300px;
+      width: 310px;
     }
 
     #page-container.left-menu-open #right-contents {
-      width: calc(100vw - 300px);
+      width: calc(100vw - 310px);
     }
 
     /* Collapsible Left Menu */
 
     #left-menu {
       background-color: #CCCCCC;
-      border-right: 1px solid #999;
-      height: 100vh;
+      /* border-right: 1px solid #999; */
       overflow-x: hidden;
-      transition: all 1s ease-in-out .1s;
     }
 
     /* Left Menu Add Application */
 
-    #add-application {
+    #left-menu nav {
+      margin-bottom: 16px;
+    }
+
+    /* #add-application {
       margin-top: 10px;
       margin-left: 10px;
-    }
+    } */
 
     /* Left Menu Filters & Sorting Dropdown Menus */
 
@@ -143,27 +148,68 @@
 
     /* Left Menu Application List */
 
-    #left-menu ul,
-    #left-menu li {
-      list-style: none;
-      padding-left: 5px;
-      margin-left: 0;
+    #left-menu-links {
+      display: flex;
+      flex-direction: column;
     }
 
-    #left-menu li:before {
-      display: block;
+    .application-list-entry {
+      display: flex;
+      flex-direction: row;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    .application-list-entry:last-of-type {
+      margin-bottom: 50px;
+    }
+
+    .application-list-marker {
       width: 5px;
-      position: relative;
-      left: -5px;
-      color: violet;
-      border-radius: 2px;
-      height: 80%;
+      background-color: dodgerblue;
       content: "";
+      border-top-left-radius: 2px;
+      border-bottom-left-radius: 2px;
     }
 
-    #left-menu a {
-      text-decoration: none;
+    .application-list-entry.opened .application-list-marker,
+    .application-list-entry:hover .application-list-marker {
+      background-color: darkblue;
     }
+    
+    .application-list-entry.rejected .application-list-marker {
+      background-color: #555555;
+    }
+
+    .application-list-pos-comp {
+      width: 265px;
+      padding: 2px 0;
+      padding-left: 5px;
+      background-color: white;
+      border-top-right-radius: 2px;
+      border-bottom-right-radius: 2px;
+    }
+    .application-list-entry.rejected .application-list-pos-comp {
+      text-decoration: line-through;
+    }
+    .application-list-entry.opened .application-list-pos-comp {
+      /* background-color: #DDEDFF; */
+      color: dodgerblue;
+    }
+
+    .application-list-position {
+      width: 265px;
+      font-size: 1rem;
+    }
+    
+    .application-list-company {
+      width: 265px;
+      font-size: 0.8rem;
+    }
+
+
 
     #left-menu a.rejected {
       text-decoration: line-through;
@@ -177,16 +223,24 @@
 
     .list-group-label {
       font-weight: bold;
-      margin-top: 10px;
+      margin-top: 16px;
       margin-bottom: 5px;
+    }
+
+    .list-group-label:first-of-type {
+      margin-top: 0;
     }
 
     /* Right Pane Left Menu Toggle */
 
-    #left-menu-toggle {
+    #right-contents nav {
+      margin-bottom: 16px;
+    }
+
+    /* #left-menu-toggle {
       margin-top: 10px;
       margin-left: 10px;
-    }
+    } */
 
     /* Right Pane Form */
 
@@ -287,7 +341,7 @@
   <div id="page-container" class="left-menu-closed">
     <!-- Left menu -->
     <div id="left-menu">
-      <div>
+      <nav>
         <button id="add-application">+</button>
         <div class="dropdown">
           <button class="dropbtn">Tag filters</button>
@@ -323,8 +377,8 @@
             </div>
           </div>
         </div>
-      </div>
-      <ul id="left-menu-links"></ul>
+      </nav>
+      <div id="left-menu-links"></div>
     </div>
     <!-- Right view port -->
     <div id="right-contents">
@@ -734,7 +788,7 @@
      * Updates the DOM contents with data
      */
     function updateGUI() {
-      listApplications();
+      buildDomApplicationList();
       listTags();
       if (pageState.db.length > 0)
         openApplication(pageState.db[0]);
@@ -814,7 +868,7 @@
     function createNewApplication() {
       const application = new JobTracker();
       pageState.db.push(application);
-      appendToApplicationList(application);
+      appendDomListEntry(application);
       openApplication(application);
     }
 
@@ -823,46 +877,50 @@
      * Adds replaces the contents of the list with the new list.
      * Applies sorting & grouping
      */
-    function listApplications() {
-      const leftMenu = $id(DOM_IDS.leftMenuLinks);
-      leftMenu.innerHTML = ``;
-      if (pageState.applicationListSort !== null)
-        pageState.db.sort(pageState.applicationListSort);
-      let groupKey = pageState.ap
+    function buildDomApplicationList() {
+      // get element
+      const containerEl = $id(DOM_IDS.leftMenuLinks);
+      // reset element
+      containerEl.innerHTML = ``;
+      // grouping logic
       let prevGroup;
-      const groupOn = pageState.applicationListGroup !== null;
-      for (const application of pageState.db) {
-        if (groupOn && String(pageState.applicationListGroup(application)) !== prevGroup) {
+      const conditionalAppendDomListGroup = pageState.applicationListGroup === null
+        ? () => { }
+        : (application) => {
           const group = String(pageState.applicationListGroup(application));
+          if (group !== prevGroup) {
           prevGroup = group;
-          appendGroupToApplicationList(application, group || `No value`, leftMenu);
+            appendDomListGroup(application, group || `No value`, containerEl);
         }
-        appendToApplicationList(application, leftMenu);
+        };
+      // looping self sorting db
+      for (const application of pageState.db) {
+        conditionalAppendDomListGroup(application);
+        appendDomListEntry(application, containerEl);
       }
-    }
-    /**
-     * Adds an entry to the left menu application list
-     * @param {JobTracker} application Application object to list.
-     * @param {HTMLElement} [tgt] Optional list container element.
-     */
-    function appendToApplicationList(application, tgt) {
-      const liEl = document.createElement(`li`);
-      setApplicationListEntryAttributes(liEl, application);
-      (tgt || $id(DOM_IDS.leftMenuLinks)).appendChild(liEl);
     }
     /**
      * Adds a group label to the left menu application list
      * @param {JobTracker} application Application object to list.
      * @param {String} group Label of the group.
-     * @param {HTMLElement} [tgt] Optional list container element.
+     * @param {HTMLElement} [tgtEl] Optional list container element.
      */
-    function appendGroupToApplicationList(application, group, tgt) {
-      const liEl = document.createElement(`li`);
-      liEl.classList.add(`list-group-label`);
-      liEl.innerText = group;
-      (tgt || $id(DOM_IDS.leftMenuLinks)).appendChild(liEl);
+    function appendDomListGroup(application, group, tgtEl) {
+      const liGpEl = document.createElement(`div`);
+      liGpEl.classList.add(`list-group-label`);
+      liGpEl.innerText = group;
+      (tgtEl || $id(DOM_IDS.leftMenuLinks)).appendChild(liGpEl);
     }
-
+    /**
+     * Adds an entry to the left menu application list
+     * @param {JobTracker} application Application object to list.
+     * @param {HTMLElement} [tgtEl] Optional list container element.
+     */
+    function appendDomListEntry(application, tgtEl) {
+      const liEl = document.createElement(`div`);
+      buildDomApplicationListEntry(liEl, application);
+      (tgtEl || $id(DOM_IDS.leftMenuLinks)).appendChild(liEl);
+    }
     /**
      * Updates one list entry.
      * @param {JobTracker} application
@@ -870,18 +928,36 @@
     function updateApplicationListEntry(application) {
       const id = `link_${application.uid}`;
       const liEl = $id(id);
-      setApplicationListEntryAttributes(liEl, application);
+      buildDomApplicationListEntry(liEl, application);
     }
     /**
      * Sets the values of the attributes of an application list entry.
      * @param {HTMLElement} liEl <li> element
      * @param {JobTracker} application
      */
-    function setApplicationListEntryAttributes(liEl, application) {
+    function buildDomApplicationListEntry(liEl, application) {
+      // reset for updates
+      liEl.innerHTML = ``;
       liEl.setAttribute(`id`, `link_${application.uid}`);
       liEl.setAttribute(`data-tags`, `,${[...application.tags].join(`,`)},`);
-      liEl.innerHTML = ``;
-      liEl.appendChild(application.getMenuLink());
+      liEl.classList.add(`application-list-entry`);
+      if (application.isRejected) liEl.classList.add(`rejected`);
+      const markerEl = document.createElement(`div`);
+      markerEl.classList.add(`application-list-marker`);
+      const textEl = document.createElement(`div`);
+      textEl.classList.add(`application-list-pos-comp`);
+      const positionEl = document.createElement(`div`);
+      positionEl.classList.add(`application-list-position`);
+      positionEl.innerText = application.position;
+      const companyEl = document.createElement(`div`);
+      companyEl.classList.add(`application-list-company`);
+      companyEl.innerText = application.company;
+      textEl.appendChild(positionEl);
+      textEl.appendChild(companyEl);
+      liEl.appendChild(markerEl);
+      liEl.appendChild(textEl);
+      liEl.addEventListener(DOM_EVENTS.click, () => openApplication(application));
+    }
     }
 
     /**
@@ -989,18 +1065,6 @@
       this.isInterviewing = !!val?.isInterviewing;
       this.tags = new Set(Array.isArray(val?.tags) ? val.tags : []);
       this.messages = Array.isArray(val?.messages) ? val.messages : [];
-    }
-    /**
-     * Method getMenuLink
-     * @returns {HTMLElement}
-     */
-    JobTracker.prototype.getMenuLink = function () {
-      const el = document.createElement(`a`);
-      el.innerText = `${this.company} — ${this.position}`;
-      el.href = `#`;
-      if (this.isRejected) el.classList.add(`rejected`);
-      el.addEventListener(DOM_EVENTS.click, () => openApplication(this));
-      return el;
     }
     /**
      * Method toJSON
@@ -1113,7 +1177,7 @@
         } else
           throw new Error(`Unsupported sort method "${sort}"`);
       }
-      listApplications();
+      buildDomApplicationList();
     }
     /**
      * StatusFlag class
