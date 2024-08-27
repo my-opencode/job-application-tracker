@@ -196,6 +196,7 @@
           <div>
             <label for="input-offer-url">Offer URL</label>
             <input type="text" name="input-offer-url" id="input-offer-url" />
+            <a id="offer-url-link" href="#" target="_blank" rel="noopener noreferrer">Open URL ⤴</a>
           </div>
         </fieldset>
         <fieldset>
@@ -336,6 +337,7 @@
       leftMenuToggle: `left-menu-toggle`,
       loadingOverlay: `loading-overlay`,
       pageContainer: `page-container`,
+      offerLink: `offer-url-link`,
       rightContents: `right-contents`,
       inputAddTag: `input-add-tag`,
       inputs: {
@@ -552,6 +554,7 @@
      * @param {JobTracker} application
      */
     function openApplication(application) {
+      updateOfferLink(application);
       for (const key of [`offerUrl`, `position`, `company`, `location`, `contactEmail`, `contactPhone`, `contactName`, `applicationDate`, `applicationEmail`, `offer`, `coverLetter`, `notes`]) {
         const elSrc = $id(DOM_IDS.inputs[key]);
         if (!elSrc) throw new Error(`Missing element for ${key}`);
@@ -562,6 +565,8 @@
           application[key] = e.target.value;
           if (key === `position` || key === `company`)
             updateApplicationListEntry(application);
+          if (key === `offerUrl`)
+            updateOfferLink(application);
           saveDb();
         });
       }
@@ -630,6 +635,11 @@
       const liEl = $id(id);
       liEl.innerHTML = ``;
       liEl.appendChild(application.getMenuLink());
+    }
+
+    function updateOfferLink(application) {
+      const el = $id(DOM_IDS.offerLink);
+      el.href = application.offerUrl;
     }
 
     function listTags() {
