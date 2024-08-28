@@ -627,33 +627,92 @@
      * @name _pageState
      * @type {PageState} 
      */
-    const _pageState = {
-      dirH: undefined,
-      db: [],
-      tags: new Set(),
-      isLoading: false,
-      applicationListGroup: null,
-      applicationListSort: null
-    };
-    // state event management
-    var pageState = new Proxy(_pageState, {
-      set(target, prop, value) {
-        if (prop === `isLoading`) {
-          target[prop] = !!value;
-          if (target.isLoading)
-            $id(DOM_IDS.loadingOverlay).showModal();
-          else
-            $id(DOM_IDS.loadingOverlay).close();
-        }
-        else
-          target[prop] = value;
+    var pageState = {
+      // z prefix is for intellisense order of suggestion
+      // file system
+      zDirH: undefined,
+      // data
+      zDb: [],
+      zTags: new Set(),
+      // data modifiers
+      zApplicationListSort: null,
+      zApplicationListGroup: null,
+      // dom states
+      zIsLoading: false,
+
+      // getters
+      get dirH() {
+        return this.zDirH;
       },
-      get(target, prop) {
-        if (target.applicationListSort && prop === `db`)
-          return target[prop].toSorted(target.applicationListSort);
-        return target[prop];
-      }
-    });
+      get db() {
+        return new Proxy(
+          this.zApplicationListSort
+            ? this.zDb.toSorted(this.zApplicationListSort)
+            : this.zDb,
+          {
+            get(target, p) {
+              if ([`copyWithin`, `fill`, `pop`, `push`, `reverse`, `shift`, `sort`, `slice`, `unshift`].includes(p))
+                throw new Error(`Mutating methods are not supported. Use a state mutator.`);
+              return target[p];
+            }
+          }
+        );
+      },
+      get tags() {
+        return new Proxy(
+          this.zTags,
+          {
+            get(target, p) {
+              if ([`add`, `clear`, `delete`].includes(p))
+                throw new Error(`Mutating methods are not supported. Use a state mutator.`);
+              return target[p];
+            }
+          }
+        );
+      },
+      get tagsArray(){
+        return [...this.zTags].sort();
+      },
+      get applicationListGroup() {
+        return this.zApplicationListGroup;
+      },
+      get applicationListSort() {
+        return this.zApplicationListSort;
+      },
+      get isLoading() {
+        return this.zIsLoading;
+      },
+
+      // mutators <-- this is where to add listeners
+      set dirH(v) {
+        this.zDirH = v;
+      },
+      set db(v) {
+        this.zDb = v;
+      },
+      pushToDb(v) {
+        this.zDb.push(v);
+      },
+      set applicationListGroup(v) {
+        this.zApplicationListGroup = v;
+      },
+      set applicationListSort(v) {
+        this.zApplicationListSort = v;
+      },
+      set tags(v) {
+        this.zTags = v;
+      },
+      addtoTags(v){
+        this.zTags.add(v);
+      },
+      set isLoading(v) {
+        this.zIsLoading = !!v;
+        toggleDomLoadingOverlay();
+      },
+
+    };
+
+
 
     /**
      * Wrapper for document.getElementById
@@ -902,7 +961,7 @@
      */
     function createNewApplication() {
       const application = new JobTracker();
-      pageState.db.push(application);
+      pageState.pushToDb(application);
       appendDomListEntry(application);
       openApplication(application);
     }
@@ -1015,7 +1074,7 @@
       const selectEl = $id(DOM_IDS.inputs.tags);
       const filterEl = $id(DOM_IDS.filterTags);
       const append = AppendToTagList(selectEl, filterEl)
-      for (const tag of pageState.tags)
+      for (const tag of pageState.tagsArray)
         append(tag);
     }
     /**
@@ -1027,7 +1086,7 @@
       const fieldEl = $id(DOM_IDS.inputs.tagField);
       const tag = fieldEl.value;
       fieldEl.value = ``;
-      pageState.tags.add(tag);
+      pageState.addToTags(tag);
       const selectEl = $id(DOM_IDS.inputs.tags);
       const filterEl = $id(DOM_IDS.filterTags);
       AppendToTagList(selectEl, filterEl)(tag, true);
@@ -1131,8 +1190,9 @@
       /** @type {DbObject} */
       const obj = {
         updated: (new Date()).toISOString(),
-        tags: [...pageState.tags],
-        data: pageState.db.map(app => app.toObject())
+        tags: pageState.tagsArray,
+        // directly accessing the raw unsorted data
+        data: pageState.zDb.map(app => app.toObject())
       };
       console.log(`saving`);
       await writeFile(DB_FILENAME, JSON.stringify(obj, null, ` `));
@@ -1172,7 +1232,7 @@
      */
     function handleFilterTagsReset(e) {
       $id(DOM_IDS.filterTags).childNodes.forEach(optN => optN.selected = true);
-      filterList([...pageState.tags]);
+      filterList(pageState.tagsArray);
     }
 
     /**
@@ -1185,9 +1245,6 @@
     function handleSorting(e) {
       if (e.target.id === `list-sort-reset`) {
         resetSortingMenu();
-        pageState.db.sort(
-          (a, b) => a.uid < b.uid ? -1 : a.uid > b.uid ? 1 : 0
-        );
         pageState.applicationListSort = null;
         pageState.applicationListGroup = null;
       } else {
@@ -1250,6 +1307,16 @@
       document
         .querySelectorAll(`input[name=list-sort-method]`)
         .forEach(n => n.checked = false);
+    }
+
+    /**
+     * Toggles the loading overlay based on the value of isLoading
+     */
+    function toggleDomLoadingOverlay() {
+      if (pageState.isLoading)
+        $id(DOM_IDS.loadingOverlay).showModal();
+      else
+        $id(DOM_IDS.loadingOverlay).close();
     }
   </script>
 </body>
