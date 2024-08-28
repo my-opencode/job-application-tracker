@@ -531,28 +531,6 @@
      * @property {Array<JobTracker>} data
      */
     /**
-     * @typedef {Object} JobTracker
-     * @property {String} uid Unique identifier.
-     * @property {String} offerUrl Link to the original offer.
-     * @property {String} position Position of the offer.
-     * @property {String} company Name of the company or recruitment agency.
-     * @property {String} location Geographical location.
-     * @property {String} contactEmail Email contact.
-     * @property {String} contactPhone Phone contact.
-     * @property {String} contactName Phone contact.
-     * @property {String} applicationEmail Email used for the application.
-     * @property {String} applyDate Date of application.
-     * @property {Boolean} isSent
-     * @property {Boolean} isViewed
-     * @property {Boolean} isRejected
-     * @property {Boolean} isInterviewing
-     * @property {String} offer Text of the offer.
-     * @property {String} coverLetter Text of the cover letter.
-     * @property {String} notes Text notes.
-     * @property {Set<String>} tags Text tags.
-     * @property {Array<String>} messages Exchanged messages.
-     */
-    /**
      * @typedef {null|(v:any)=>string|number} ApplicationListGroup
      */
     /**
@@ -563,10 +541,23 @@
     * @typedef {Object} PageState
     * @property {FileSystemDirectoryHandle} dirH
     * @property {Set<String>} tags
+    * @property {Array<String>} tagsArray
     * @property {Array<JobTracker>} db
+    * @property {Boolean} isApplicationFilterEnabled
     * @property {ApplicationListGroup} applicationListGroup
     * @property {ApplicationListSort} applicationListSort
     * @property {Boolean} isLoading
+    * 
+    * @property {FileSystemDirectoryHandle} zDirH
+    * @property {Set<String>} zTags
+    * @property {Array<JobTracker>} zDb
+    * @property {Boolean} zIsApplicationFilterEnabled
+    * @property {ApplicationListGroup} zApplicationListGroup
+    * @property {ApplicationListSort} zApplicationListSort
+    * @property {Boolean} zIsLoading
+    * 
+    * @method pushToDb
+    * @method addToTags
     */
     const DB_FILENAME = `tracker.db.json`;
     /**
@@ -634,7 +625,7 @@
       // data
       zDb: [],
       zTags: new Set(),
-      // data modifiers
+      // data view modifiers
       zApplicationListSort: null,
       zApplicationListGroup: null,
       // dom states
@@ -1139,33 +1130,54 @@
       return uid;
     }
     /**
-     * Class JobTracker that represents an application
+     * @class
+     * @classdesc Class JobTracker that represents an application
      */
     function JobTracker(val) {
-      // data
+      /** @member {String} uid Unique identifier. */
       this.uid = (typeof val?.uid === `string`) ? val.uid : createUid();
+      /** @member {String} offerUrl Link to the original offer. */
       this.offerUrl = (typeof val?.offerUrl === `string`) ? val.offerUrl : ``;
+      /** @member {String} position Position of the offer.       */
       this.position = (typeof val?.position === `string`) ? val.position : ``;
+      /** @member {String} company Name of the company or recruitment agency.       */
       this.company = (typeof val?.company === `string`) ? val.company : ``;
+      /** @member {String} location Geographical location.       */
       this.location = (typeof val?.location === `string`) ? val.location : ``;
+      /** @member {String} contactEmail Email contact.       */
       this.contactEmail = (typeof val?.contactEmail === `string`) ? val.contactEmail : ``;
+      /** @member {String} contactPhone Phone contact.       */
       this.contactPhone = (typeof val?.contactPhone === `string`) ? val.contactPhone : ``;
+      /** @member {String} contactName Phone contact.       */
       this.contactName = (typeof val?.contactName === `string`) ? val.contactName : ``;
+      /** @member {String} applicationEmail Email used for the application.       */
       this.applicationEmail = (typeof val?.applicationEmail === `string`) ? val.applicationEmail : ``;
+      /** @member {String} applyDate Date of application.       */
       this.applicationDate = (typeof val?.applicationDate === `string`) ? val.applicationDate : ``;
+      /** @member {String} offer Text of the offer.       */
       this.offer = (typeof val?.offer === `string`) ? val.offer : ``;
+      /** @member {String} coverLetter Text of the cover letter.       */
       this.coverLetter = (typeof val?.coverLetter === `string`) ? val.coverLetter : ``;
+      /** @member {String} notes Text notes. */
       this.notes = (typeof val?.note === `string`) ? val.notes : ``;
+      /** @member {Boolean} isSent */
       this.isSent = !!val?.isSent;
+      /** @member {Boolean} isViewed */
       this.isViewed = !!val?.isViewed;
-      this.isRejected = !!val?.isRejected;
+      /** @member {Boolean} isInterviewing */
       this.isInterviewing = !!val?.isInterviewing;
+      /** @member {Boolean} isRejected */
+      this.isRejected = !!val?.isRejected;
+      /** @member {Set<String>} tags Text tags. */
       this.tags = new Set(Array.isArray(val?.tags) ? val.tags : []);
+      /** @member {Array<String>} messages Exchanged messages. */
       this.messages = Array.isArray(val?.messages) ? val.messages : [];
     }
     /**
      * Method toJSON
      * Returns a json representation of an application
+     * @name JobTracker#toJSON
+     * @function
      * @returns {String}
      */
     JobTracker.prototype.toJSON = function () {
@@ -1174,6 +1186,8 @@
     /**
      * Method toObject
      * Returns the database representation of an application
+     * @name JobTracker#toObject
+     * @function
      * @returns {Object}
      */
     JobTracker.prototype.toObject = function () {
