@@ -243,13 +243,20 @@
     #application-contents fieldset,
     #application-contents fieldset legend {
       background-color: #FFF;
+      border: 0;
+      margin: 0;
+      padding: 0;
     }
 
     #application-contents fieldset {
-      border: 0;
-      margin: 10px 0;
+      margin-top: -9px;
+      margin-bottom: 8px;
       border-radius: 2px;
-      padding-top: 14px;
+      border-left: 5px solid dodgerblue;
+      box-sizing: border-box;
+      padding: 14px;
+      padding-bottom: 5px;
+      padding-right: 18px;
     }
 
     #application-contents fieldset:first-of-type {
@@ -258,11 +265,12 @@
 
     #application-contents fieldset legend {
       position: relative;
-      top: 9px;
-      left: -12px;
+      top: 14px;
+      left: -5px;
       padding-left: 5px;
-      border-left: 5px solid dodgerblue;
+      /* border-left: 5px solid dodgerblue; */
       color: dodgerblue;
+      border-top-left-radius: 2px;
     }
 
     #application-contents fieldset input,
