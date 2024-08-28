@@ -984,7 +984,7 @@
           const group = String(pageState.applicationListGroup(application));
           if (group !== prevGroup) {
             prevGroup = group;
-            appendDomListGroup(application, group || `No value`, containerEl);
+            appendDomListGroup(group || `No value`, containerEl);
           }
         };
       // looping self sorting db
@@ -995,11 +995,10 @@
     }
     /**
      * Adds a group label to the left menu application list
-     * @param {JobTracker} application Application object to list.
      * @param {String} group Label of the group.
      * @param {HTMLElement} [tgtEl] Optional list container element.
      */
-    function appendDomListGroup(application, group, tgtEl) {
+    function appendDomListGroup(group, tgtEl) {
       const liGpEl = document.createElement(`div`);
       liGpEl.classList.add(`list-group-label`);
       liGpEl.innerText = group;
