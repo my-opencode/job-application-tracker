@@ -330,6 +330,36 @@
       margin-left: 0;
     }
 
+    #application-contents fieldset.danger {
+      border-color:crimson;
+    }
+    #delete-button-wrapper {
+      position: relative;
+    }
+    #application-contents fieldset.danger legend,
+    #delete-button {
+      color:crimson;
+    }
+    #delete-button {
+      margin: 5px 10px;
+      z-index: 10;
+      width: 150px;
+      height: 30px;
+    }
+    #delete-button-cover {
+      position: absolute;
+      width: 170px;
+      height: 40px;
+      background-color: red;
+      opacity: 0.5;
+      z-index: 100;
+      border-radius: 4px;
+      transition: transform 1s ease-in-out;
+    }
+    #delete-button-cover.removed {
+      transform: translate(170px);
+    }
+
     /* Repository Link */
 
     #repository {
@@ -513,6 +543,13 @@
             <select multiple name="input-tags" id="input-tags"></select>
           </div>
         </fieldset>
+        <fieldset class="danger">
+          <legend>Danger Zone</legend>
+          <div id="delete-button-wrapper">
+            <div id="delete-button-cover"></div>
+            <button id="delete-button">Delete this application</button>
+          </div>
+        </fieldset>
       </contents>
     </div>
   </div>
@@ -568,6 +605,8 @@
     var DOM_IDS = {
       addApplication: `add-application`,
       applicationContents: `application-contents`,
+      deleteButton: `delete-button`,
+      deleteButtonCover: `delete-button-cover`,
       filterTags: `filter-tags`,
       filterTagsReset: `filter-tags-reset`,
       initDialog: `init-dialog`,
@@ -615,6 +654,7 @@
       change: `change`,
       click: `click`,
       update: `update`,
+      mouseleave: `mouseleave`,
     };
     /** 
      * @name _pageState
@@ -690,6 +730,11 @@
       pushToDb(v) {
         this.zDb.push(v);
       },
+      removeFromDb(uid){
+        this.zDb = this.zDb.filter(
+          a => a.uid !== uid
+        );
+      },
       set isApplicationFilterEnabled(v) {
         this.zIsApplicationFilterEnabled = !!v;
       },
@@ -758,6 +803,10 @@
     $on(DOM_IDS.sort.appEmail, DOM_EVENTS.change, handleSorting);
     $on(DOM_IDS.sort.status, DOM_EVENTS.change, handleSorting);
     $on(DOM_IDS.sort.location, DOM_EVENTS.change, handleSorting);
+    // danger button cover
+    $on(DOM_IDS.deleteButtonCover, DOM_EVENTS.click, uncoverDeleteButton);
+    $on(DOM_IDS.deleteButton, DOM_EVENTS.click, handleDeleteApplication);
+    $on(DOM_IDS.deleteButton, DOM_EVENTS.mouseleave, coverDeleteButton);
 
     /**
      * Shows an error message and throws if accessing FileSystem is not supported.
@@ -891,6 +940,7 @@
      */
     function openApplication(application) {
       decorateApplicationListEntry(application);
+      coverDeleteButton();
       updateOfferLink(application);
       for (const key of [`offerUrl`, `position`, `company`, `location`, `contactEmail`, `contactPhone`, `contactName`, `applicationDate`, `applicationEmail`, `offer`, `coverLetter`, `notes`]) {
         const elSrc = $id(DOM_IDS.inputs[key]);
@@ -949,6 +999,7 @@
           saveDb();
         });
       }
+      const deleteButtonEl = $id(DOM_IDS.deleteButton).setAttribute(`data-uid`,application.uid);
     }
 
     /**
@@ -1345,6 +1396,28 @@
         $id(DOM_IDS.loadingOverlay).showModal();
       else
         $id(DOM_IDS.loadingOverlay).close();
+    }
+
+    function uncoverDeleteButton() {
+      const coverEl = $id(DOM_IDS.deleteButtonCover);
+      if(coverEl.classList.contains(`removed`))
+        coverDeleteButton();
+      else
+        coverEl.classList.add(`removed`);
+    }
+    function coverDeleteButton() {
+      $id(DOM_IDS.deleteButtonCover).classList.remove(`removed`);
+    }
+    function handleDeleteApplication(e) {
+      const uid = e.target.dataset.uid;
+      if(!uid) return;
+      pageState.removeFromDb(uid);
+      saveDb();
+      buildDomApplicationList();
+      if(pageState.db.length)
+        openApplication(pageState.db[0]);
+      else
+        createNewApplication();
     }
   </script>
 </body>
