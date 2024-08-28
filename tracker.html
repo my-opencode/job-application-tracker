@@ -626,6 +626,7 @@
       zDb: [],
       zTags: new Set(),
       // data view modifiers
+      zIsApplicationFilterEnabled: false,
       zApplicationListSort: null,
       zApplicationListGroup: null,
       // dom states
@@ -664,6 +665,9 @@
       get tagsArray() {
         return [...this.zTags].sort();
       },
+      get isApplicationFilterEnabled() {
+        return this.zIsApplicationFilterEnabled;
+      },
       get applicationListGroup() {
         return this.zApplicationListGroup;
       },
@@ -683,6 +687,9 @@
       },
       pushToDb(v) {
         this.zDb.push(v);
+      },
+      set isApplicationFilterEnabled(v) {
+        this.zIsApplicationFilterEnabled = !!v;
       },
       set applicationListGroup(v) {
         this.zApplicationListGroup = v;
@@ -1212,21 +1219,27 @@
     /**
      * Handles a filter event
      * Controls filtering
-     * @param {Event} e
      */
-    function handleFilterTags(e) {
+    function handleFilterTags() {
+      filterList(listSelectedTags());
+      pageState.isApplicationFilterEnabled = true;
+    }
+    /**
+     * Lists tags selected for filtering
+     */
+    function listSelectedTags() {
       const tags = [];
-      e.target.childNodes.forEach(optN => {
+      $id(DOM_IDS.filterTags).childNodes.forEach(optN => {
         if (optN.selected) tags.push(optN.value);
       });
-      filterList(tags);
+      return tags;
     }
     /**
      * Applies filtering to the DOM elements
      * @param {Array<String>} tagsToKeep
      */
     function filterList(tagsToKeep) {
-      const elements = document.querySelectorAll(`#${DOM_IDS.leftMenuLinks} li`);
+      const elements = document.querySelectorAll(`#${DOM_IDS.leftMenuLinks} .application-list-entry`);
       elements.forEach(
         liEl => {
           const tags = liEl.dataset.tags;
@@ -1239,9 +1252,9 @@
     }
     /**
      * Handles a filter reset event
-     * @param {Event} e
      */
-    function handleFilterTagsReset(e) {
+    function handleFilterTagsReset() {
+      pageState.isApplicationFilterEnabled = false;
       $id(DOM_IDS.filterTags).childNodes.forEach(optN => optN.selected = true);
       filterList(pageState.tagsArray);
     }
