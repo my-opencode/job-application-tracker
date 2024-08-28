@@ -958,7 +958,7 @@
      * Does not save to file
      */
     function createNewApplication() {
-      const application = new JobTracker();
+      const application = new JobTracker({ position: `?`, company: `?` });
       pageState.pushToDb(application);
       appendDomListEntry(application);
       openApplication(application);
