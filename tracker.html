@@ -593,6 +593,7 @@
     * @property {ApplicationListGroup} applicationListGroup
     * @property {ApplicationListSort} applicationListSort
     * @property {Boolean} isLoading
+    * @property {String} openApplicationUid
     * 
     * @property {FileSystemDirectoryHandle} zDirH
     * @property {Set<String>} zTags
@@ -601,8 +602,10 @@
     * @property {ApplicationListGroup} zApplicationListGroup
     * @property {ApplicationListSort} zApplicationListSort
     * @property {Boolean} zIsLoading
+    * @property {String} zOpenApplicationUid
     * 
     * @method pushToDb
+    * @method removeFromDb
     * @method addToTags
     */
     const DB_FILENAME = `tracker.db.json`;
@@ -680,6 +683,7 @@
       zApplicationListGroup: null,
       // dom states
       zIsLoading: false,
+      zOpenApplicationUid: ``,
 
       // getters
       get dirH() {
@@ -726,6 +730,9 @@
       get isLoading() {
         return this.zIsLoading;
       },
+      get openApplicationUid() {
+        return this.zOpenApplicationUid;
+      },
 
       // mutators <-- this is where to add listeners
       set dirH(v) {
@@ -760,6 +767,13 @@
       set isLoading(v) {
         this.zIsLoading = !!v;
         toggleDomLoadingOverlay();
+      },
+      set openApplicationUid(v) {
+        this.zOpenApplicationUid = v || ``;
+        if (!!v) {
+          removeDomListEntryOpenDecoration();
+          decorateDomListEntryOpened(this.zOpenApplicationUid);
+        }
       },
 
     };
@@ -946,7 +960,7 @@
      * @param {JobTracker} application
      */
     function openApplication(application) {
-      decorateApplicationListEntry(application);
+      pageState.openApplicationUid = application.uid;
       coverDeleteButton();
       updateOfferLink(application);
       for (const key of [`offerUrl`, `position`, `company`, `location`, `contactEmail`, `contactPhone`, `contactName`, `applicationDate`, `applicationEmail`, `offer`, `coverLetter`, `notes`]) {
@@ -1090,6 +1104,8 @@
       liEl.setAttribute(`id`, `link_${application.uid}`);
       liEl.setAttribute(`data-tags`, `,${[...application.tags].join(`,`)},`);
       liEl.classList.add(`application-list-entry`);
+      if (pageState.openApplicationUid === application.uid)
+        decorateDomListEntryOpened(application.uid, liEl)
       if (application.isRejected) liEl.classList.add(`rejected`);
       const markerEl = document.createElement(`div`);
       markerEl.classList.add(`application-list-marker`);
@@ -1108,9 +1124,11 @@
       liEl.addEventListener(DOM_EVENTS.click, () => openApplication(application));
     }
 
-    function decorateApplicationListEntry(application) {
+    function decorateDomListEntryOpened(uid, liEl) {
+      (liEl || $id(`link_${uid}`)).classList.add(`opened`);
+    }
+    function removeDomListEntryOpenDecoration() {
       document.querySelector(`.application-list-entry.opened`)?.classList?.remove?.(`opened`);
-      $id(`link_${application.uid}`).classList.add(`opened`);
     }
 
     /**
