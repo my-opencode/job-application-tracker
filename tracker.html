@@ -813,7 +813,7 @@
     // add application button
     $on(DOM_IDS.addApplication, DOM_EVENTS.click, createNewApplication);
     // application form: add new tag
-    $on(DOM_IDS.inputAddTag, DOM_EVENTS.click, addTag);
+    $on(DOM_IDS.inputAddTag, DOM_EVENTS.click, addNewTag);
     // filtering
     $on(DOM_IDS.filterTags, DOM_EVENTS.change, handleFilterTags);
     $on(DOM_IDS.filterTagsReset, DOM_EVENTS.click, handleFilterTagsReset);
@@ -1183,14 +1183,34 @@
     }
     /**
      * Creates a new tag
-     * Adds it to application tags
+     * Adds it to known tags
+     * Updates tags select options
      * Triggers tags select change event
      */
-    function addTag() {
+    function addNewTag() {
+      const tag = getNewTagValueFromDom({ cut: true });
+      pageState.addToTags(tag);
+      addNewDomTagAndTriggerSelect(tag);
+    }
+    /**
+     * Retrieves the value of the new tag to add
+     * @param {Object} [options] behavior options
+     * @param {Boolean} [options.cut] Will clear the input value when true.
+     * @returns {String}
+     */
+    function getNewTagValueFromDom(options) {
       const fieldEl = $id(DOM_IDS.inputs.tagField);
       const tag = fieldEl.value;
+      if (options?.cut)
       fieldEl.value = ``;
-      pageState.addToTags(tag);
+      return tag;
+    }
+    /**
+     * Updates DOM tag lists
+     * Selects new tag in application tags select
+     * Triggers the tags select change event
+     */
+    function addNewDomTagAndTriggerSelect(tag) {
       const selectEl = $id(DOM_IDS.inputs.tags);
       const filterEl = $id(DOM_IDS.filterTags);
       AppendToTagList(selectEl, filterEl)(tag, true);
