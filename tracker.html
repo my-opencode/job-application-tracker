@@ -809,7 +809,7 @@
     // select folder
     $on(DOM_IDS.initDialogSelectDirBtn, DOM_EVENTS.click, selectDirectory);
     // open close left menu
-    $on(DOM_IDS.leftMenuToggle, DOM_EVENTS.click, toggleLeftMenu);
+    $on(DOM_IDS.leftMenuToggle, DOM_EVENTS.click, toggleDomLeftMenu);
     // add application button
     $on(DOM_IDS.addApplication, DOM_EVENTS.click, createNewApplication);
     // application form: add new tag
@@ -825,9 +825,9 @@
     $on(DOM_IDS.sort.status, DOM_EVENTS.change, handleSorting);
     $on(DOM_IDS.sort.location, DOM_EVENTS.change, handleSorting);
     // danger button cover
-    $on(DOM_IDS.deleteButtonCover, DOM_EVENTS.click, uncoverDeleteButton);
+    $on(DOM_IDS.deleteButtonCover, DOM_EVENTS.click, uncoverDomDeleteButton);
     $on(DOM_IDS.deleteButton, DOM_EVENTS.click, handleDeleteApplication);
-    $on(DOM_IDS.deleteButton, DOM_EVENTS.mouseleave, coverDeleteButton);
+    $on(DOM_IDS.deleteButton, DOM_EVENTS.mouseleave, coverDomDeleteButton);
 
     /**
      * Shows an error message and throws if accessing FileSystem is not supported.
@@ -880,7 +880,7 @@
       await loadDbFromFile();
       updateGUI();
       pageState.isLoading = false;
-      toggleLeftMenu();
+      toggleDomLeftMenu();
     }
 
     /**
@@ -934,7 +934,7 @@
     /**
      * Cycles left menu open & closed classes
      */
-    function toggleLeftMenu() {
+    function toggleDomLeftMenu() {
       const container = $id(DOM_IDS.pageContainer);
       if (container.classList.contains(`left-menu-open`)) {
         container.classList.remove(`left-menu-open`);
@@ -961,8 +961,8 @@
      */
     function openApplication(application) {
       pageState.openApplicationUid = application.uid;
-      coverDeleteButton();
-      updateOfferLink(application);
+      coverDomDeleteButton();
+      updateDomOfferLink(application);
       for (const key of [`offerUrl`, `position`, `company`, `location`, `contactEmail`, `contactPhone`, `contactName`, `applicationDate`, `applicationEmail`, `offer`, `coverLetter`, `notes`]) {
         const elSrc = $id(DOM_IDS.inputs[key]);
         if (!elSrc) throw new Error(`Missing element for ${key}`);
@@ -974,7 +974,7 @@
           if (key === `position` || key === `company`)
             updateApplicationListEntry(application);
           if (key === `offerUrl`)
-            updateOfferLink(application);
+            updateDomOfferLink(application);
           saveDb();
         });
       }
@@ -1135,7 +1135,7 @@
      * Updates the href value of the offer link.
      * @param {JobTracker} application
      */
-    function updateOfferLink(application) {
+    function updateDomOfferLink(application) {
       const el = $id(DOM_IDS.offerLink);
       el.href = application.offerUrl;
     }
@@ -1346,7 +1346,7 @@
      */
     function handleSorting(e) {
       if (e.target.id === `list-sort-reset`) {
-        resetSortingMenu();
+        resetDomSortingMenu();
         pageState.applicationListSort = null;
         pageState.applicationListGroup = null;
       } else {
@@ -1407,7 +1407,7 @@
     /**
      * Resets the radio inputs of the sorting menu
      */
-    function resetSortingMenu() {
+    function resetDomSortingMenu() {
       document
         .querySelectorAll(`input[name=list-sort-method]`)
         .forEach(n => n.checked = false);
@@ -1423,17 +1423,18 @@
         $id(DOM_IDS.loadingOverlay).close();
     }
 
-    function uncoverDeleteButton() {
+    function uncoverDomDeleteButton() {
       const coverEl = $id(DOM_IDS.deleteButtonCover);
       if (coverEl.classList.contains(`removed`))
-        coverDeleteButton();
+        coverDomDeleteButton();
       else
         coverEl.classList.add(`removed`);
     }
-    function coverDeleteButton() {
+    function coverDomDeleteButton() {
       $id(DOM_IDS.deleteButtonCover).classList.remove(`removed`);
     }
     function handleDeleteApplication(e) {
+      coverDomDeleteButton();
       const uid = e.target.dataset.uid;
       if (!uid) return;
       pageState.removeFromDb(uid);
