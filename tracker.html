@@ -950,7 +950,7 @@
      */
     function updateGUI() {
       buildDomApplicationList();
-      listTags();
+      listDomTags();
       if (pageState.db.length > 0)
         openApplication(pageState.db[0]);
     }
@@ -1174,7 +1174,7 @@
     /**
      * Controls the creation of tag options
      */
-    function listTags() {
+    function listDomTags() {
       const selectEl = $id(DOM_IDS.inputs.tags);
       const filterEl = $id(DOM_IDS.filterTags);
       const append = AppendToTagList(selectEl, filterEl)
