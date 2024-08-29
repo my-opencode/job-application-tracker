@@ -332,21 +332,25 @@
     }
 
     #application-contents fieldset.danger {
-      border-color:crimson;
+      border-color: crimson;
     }
+
     #delete-button-wrapper {
       position: relative;
     }
+
     #application-contents fieldset.danger legend,
     #delete-button {
-      color:crimson;
+      color: crimson;
     }
+
     #delete-button {
       margin: 5px 10px;
       z-index: 10;
       width: 150px;
       height: 30px;
     }
+
     #delete-button-cover {
       position: absolute;
       width: 170px;
@@ -357,6 +361,7 @@
       border-radius: 4px;
       transition: transform .2s ease-in-out;
     }
+
     #delete-button-cover.removed {
       transform: translate(170px);
     }
@@ -732,7 +737,7 @@
       pushToDb(v) {
         this.zDb.push(v);
       },
-      removeFromDb(uid){
+      removeFromDb(uid) {
         this.zDb = this.zDb.filter(
           a => a.uid !== uid
         );
@@ -1001,7 +1006,7 @@
           saveDb();
         });
       }
-      const deleteButtonEl = $id(DOM_IDS.deleteButton).setAttribute(`data-uid`,application.uid);
+      const deleteButtonEl = $id(DOM_IDS.deleteButton).setAttribute(`data-uid`, application.uid);
     }
 
     /**
@@ -1402,7 +1407,7 @@
 
     function uncoverDeleteButton() {
       const coverEl = $id(DOM_IDS.deleteButtonCover);
-      if(coverEl.classList.contains(`removed`))
+      if (coverEl.classList.contains(`removed`))
         coverDeleteButton();
       else
         coverEl.classList.add(`removed`);
@@ -1412,11 +1417,11 @@
     }
     function handleDeleteApplication(e) {
       const uid = e.target.dataset.uid;
-      if(!uid) return;
+      if (!uid) return;
       pageState.removeFromDb(uid);
       saveDb();
       buildDomApplicationList();
-      if(pageState.db.length)
+      if (pageState.db.length)
         openApplication(pageState.db[0]);
       else
         createNewApplication();
