@@ -963,6 +963,18 @@
       pageState.openApplicationUid = application.uid;
       coverDomDeleteButton();
       updateDomOfferLink(application);
+      setDomRightPaneFormTextFields(application);
+      setDomRightPaneFormFlagFields(application);
+      setDomRightPaneFormTagsFields(application);
+      armDomDeleteButton(application);
+    }
+    /**
+     * Replaces form elements for text values with clones.
+     * Sets values.
+     * Adds listeners.
+     * @param {JobTracker} application
+     */
+    function setDomRightPaneFormTextFields(application) {
       for (const key of [`offerUrl`, `position`, `company`, `location`, `contactEmail`, `contactPhone`, `contactName`, `applicationDate`, `applicationEmail`, `offer`, `coverLetter`, `notes`]) {
         const elSrc = $id(DOM_IDS.inputs[key]);
         if (!elSrc) throw new Error(`Missing element for ${key}`);
@@ -978,6 +990,14 @@
           saveDb();
         });
       }
+    }
+    /**
+     * Replaces form elements for boolean values with clones.
+     * Sets values.
+     * Adds listeners.
+     * @param {JobTracker} application
+     */
+    function setDomRightPaneFormFlagFields(application) {
       for (const key of [`isSent`, `isViewed`, `isInterviewing`, `isRejected`]) {
         const elSrc = $id(DOM_IDS.inputs[key]);
         if (!elSrc) throw new Error(`Missing element for ${key}`);
@@ -997,7 +1017,14 @@
             updateApplicationListEntry(application);
         });
       }
-      {
+    }
+    /**
+     * Replaces select for filtering tags values with clone.
+     * Sets values.
+     * Adds listener.
+     * @param {JobTracker} application
+     */
+    function setDomRightPaneFormTagsFields(application) {
         const key = `tags`;
         const elSrc = $id(DOM_IDS.inputs[key]);
         if (!elSrc) throw new Error(`Missing element for ${key}`);
@@ -1020,9 +1047,13 @@
           saveDb();
         });
       }
-      const deleteButtonEl = $id(DOM_IDS.deleteButton).setAttribute(`data-uid`, application.uid);
+    /**
+     * Sets the data-uid field of the delete button
+     * @param {JobTracker} application
+     */
+    function armDomDeleteButton(application) {
+      $id(DOM_IDS.deleteButton).setAttribute(`data-uid`, application.uid);
     }
-
     /**
      * Creates a new application
      * Adds it to db
