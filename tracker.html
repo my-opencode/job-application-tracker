@@ -1384,6 +1384,7 @@
      * Represents the advancement status of an application.
      * May return a bit map with valueOf
      * May return a string label with toString
+     * @class
      * @param {JobTracker} application
      */
     function StatusFlag(application) {
@@ -1395,12 +1396,12 @@
             : this.value === 1 ? `Status: sent` : `Status: unknown`;
     }
     /**
-     * Method valueOf
+     * @method StatusFlag#valueOf
      * @returns {Number}
      */
     StatusFlag.prototype.valueOf = function () { return this.value; };
     /**
-     * Method toString
+     * @method StatusFlag#toString
      * @returns {String}
      */
     StatusFlag.prototype.toString = function () { return this.label; };
